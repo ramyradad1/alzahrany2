@@ -56,6 +56,8 @@ interface AdminSettingsProps {
 }
 
 export const AdminSettings: React.FC<AdminSettingsProps> = ({ t }) => {
+    console.log('[AdminSettings] Component rendering...');
+
     const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
