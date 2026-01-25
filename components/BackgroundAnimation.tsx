@@ -11,28 +11,28 @@ interface Particle {
   color: string;
 }
 
-// Static definition of particles layout - MUCH MORE VISIBLE
+// Static definition of particles layout - Balanced visibility
 const PARTICLES: Particle[] = [
   // Large prominent particles
-  { id: 1, x: 10, y: 20, size: 80, type: 'hex', opacity: 0.4, color: 'text-cyan-500' },
-  { id: 2, x: 85, y: 15, size: 100, type: 'circle', opacity: 0.35, color: 'text-blue-500' },
-  { id: 3, x: 50, y: 50, size: 150, type: 'hex', opacity: 0.25, color: 'text-indigo-400' },
-  { id: 4, x: 20, y: 80, size: 70, type: 'circle', opacity: 0.4, color: 'text-cyan-600' },
-  { id: 5, x: 80, y: 70, size: 90, type: 'hex', opacity: 0.35, color: 'text-purple-500' },
-  { id: 6, x: 40, y: 30, size: 60, type: 'hex', opacity: 0.4, color: 'text-blue-400' },
-  { id: 7, x: 70, y: 90, size: 85, type: 'circle', opacity: 0.3, color: 'text-emerald-500' },
-  { id: 8, x: 5, y: 50, size: 50, type: 'hex', opacity: 0.35, color: 'text-cyan-400' },
-  { id: 9, x: 95, y: 40, size: 75, type: 'hex', opacity: 0.35, color: 'text-indigo-500' },
+  { id: 1, x: 10, y: 20, size: 80, type: 'hex', opacity: 0.2, color: 'text-cyan-500' },
+  { id: 2, x: 85, y: 15, size: 100, type: 'circle', opacity: 0.18, color: 'text-blue-500' },
+  { id: 3, x: 50, y: 50, size: 150, type: 'hex', opacity: 0.12, color: 'text-indigo-400' },
+  { id: 4, x: 20, y: 80, size: 70, type: 'circle', opacity: 0.2, color: 'text-cyan-600' },
+  { id: 5, x: 80, y: 70, size: 90, type: 'hex', opacity: 0.18, color: 'text-purple-500' },
+  { id: 6, x: 40, y: 30, size: 60, type: 'hex', opacity: 0.2, color: 'text-blue-400' },
+  { id: 7, x: 70, y: 90, size: 85, type: 'circle', opacity: 0.15, color: 'text-emerald-500' },
+  { id: 8, x: 5, y: 50, size: 50, type: 'hex', opacity: 0.18, color: 'text-cyan-400' },
+  { id: 9, x: 95, y: 40, size: 75, type: 'hex', opacity: 0.18, color: 'text-indigo-500' },
   // Additional particles for more coverage
-  { id: 10, x: 30, y: 10, size: 65, type: 'circle', opacity: 0.3, color: 'text-blue-500' },
-  { id: 11, x: 60, y: 25, size: 55, type: 'hex', opacity: 0.35, color: 'text-cyan-500' },
-  { id: 12, x: 15, y: 60, size: 70, type: 'circle', opacity: 0.3, color: 'text-purple-400' },
-  { id: 13, x: 75, y: 45, size: 60, type: 'hex', opacity: 0.35, color: 'text-blue-400' },
-  { id: 14, x: 45, y: 75, size: 80, type: 'circle', opacity: 0.3, color: 'text-indigo-500' },
-  { id: 15, x: 90, y: 85, size: 55, type: 'hex', opacity: 0.35, color: 'text-cyan-600' },
-  { id: 16, x: 25, y: 45, size: 45, type: 'circle', opacity: 0.4, color: 'text-blue-500' },
-  { id: 17, x: 55, y: 5, size: 50, type: 'hex', opacity: 0.35, color: 'text-purple-500' },
-  { id: 18, x: 65, y: 65, size: 60, type: 'circle', opacity: 0.3, color: 'text-cyan-400' },
+  { id: 10, x: 30, y: 10, size: 65, type: 'circle', opacity: 0.15, color: 'text-blue-500' },
+  { id: 11, x: 60, y: 25, size: 55, type: 'hex', opacity: 0.18, color: 'text-cyan-500' },
+  { id: 12, x: 15, y: 60, size: 70, type: 'circle', opacity: 0.15, color: 'text-purple-400' },
+  { id: 13, x: 75, y: 45, size: 60, type: 'hex', opacity: 0.18, color: 'text-blue-400' },
+  { id: 14, x: 45, y: 75, size: 80, type: 'circle', opacity: 0.15, color: 'text-indigo-500' },
+  { id: 15, x: 90, y: 85, size: 55, type: 'hex', opacity: 0.18, color: 'text-cyan-600' },
+  { id: 16, x: 25, y: 45, size: 45, type: 'circle', opacity: 0.2, color: 'text-blue-500' },
+  { id: 17, x: 55, y: 5, size: 50, type: 'hex', opacity: 0.18, color: 'text-purple-500' },
+  { id: 18, x: 65, y: 65, size: 60, type: 'circle', opacity: 0.15, color: 'text-cyan-400' },
 ];
 
 export const BackgroundAnimation: React.FC = () => {
