@@ -3,7 +3,7 @@ import { Section, Translations } from '../../types';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Eye, EyeOff, Edit, ChevronDown, ChevronUp, Plus, Trash2, Loader2 } from 'lucide-react';
+import { GripVertical, Eye, EyeOff, Edit, ChevronDown, ChevronUp, Plus, Trash2, Loader2, Save } from 'lucide-react';
 import { AdminSectionEditor } from './AdminSectionEditor';
 import { supabase } from '../../supabase';
 
@@ -96,6 +96,8 @@ const SortableSectionRow: React.FC<SortableSectionRowProps> = ({ section, onTogg
 export const AdminSections: React.FC<AdminSectionsProps> = ({ sections, onUpdateSections, t }) => {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [adding, setAdding] = useState(false);
+    const [hasOrderChanged, setHasOrderChanged] = useState(false);
+    const [savingOrder, setSavingOrder] = useState(false);
 
     const sensors = useSensors(
         useSensor(PointerSensor),
@@ -114,11 +116,53 @@ export const AdminSections: React.FC<AdminSectionsProps> = ({ sections, onUpdate
             // Update order property
             const updated = newSections.map((s, idx) => ({ ...s, order: idx }));
             onUpdateSections(updated);
+            setHasOrderChanged(true);
         }
     };
 
-    const handleToggleVisibility = (id: string) => {
-        const updated = sections.map(s => s.id === id ? { ...s, is_visible: !s.is_visible } : s);
+    const handleSaveOrder = async () => {
+        setSavingOrder(true);
+        try {
+            // Update each section's order in database
+            const updates = sections.map((s, idx) =>
+                supabase.from('sections').update({ order: idx }).eq('id', s.id)
+            );
+
+            const results = await Promise.all(updates);
+            const hasError = results.some(r => r.error);
+
+            if (hasError) {
+                alert('Failed to save order. Please try again.');
+            } else {
+                setHasOrderChanged(false);
+                alert('Order saved successfully!');
+            }
+        } catch (error) {
+            console.error('Error saving order:', error);
+            alert('Error saving order');
+        } finally {
+            setSavingOrder(false);
+        }
+    };
+
+    const handleToggleVisibility = async (id: string) => {
+        const section = sections.find(s => s.id === id);
+        if (!section) return;
+
+        const newVisibility = !section.is_visible;
+
+        // Update in database
+        const { error } = await supabase
+            .from('sections')
+            .update({ is_visible: newVisibility })
+            .eq('id', id);
+
+        if (error) {
+            alert('Failed to update visibility');
+            return;
+        }
+
+        const updated = sections.map(s => s.id === id ? { ...s, is_visible: newVisibility } : s);
         onUpdateSections(updated);
     };
 
@@ -188,6 +232,23 @@ export const AdminSections: React.FC<AdminSectionsProps> = ({ sections, onUpdate
                         Add Section
                     </button>
                 </div>
+
+                {/* Save Order Button - shows when order changed */}
+                {hasOrderChanged && (
+                    <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg flex items-center justify-between">
+                        <span className="text-sm text-amber-700 dark:text-amber-400">
+                            ⚠️ You have unsaved order changes
+                        </span>
+                        <button
+                            onClick={handleSaveOrder}
+                            disabled={savingOrder}
+                            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition disabled:opacity-50"
+                        >
+                            {savingOrder ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                            Save Order
+                        </button>
+                    </div>
+                )}
 
                 <DndContext
                     sensors={sensors}
