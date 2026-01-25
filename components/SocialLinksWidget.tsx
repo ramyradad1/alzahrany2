@@ -74,7 +74,7 @@ export const SocialLinksWidget: React.FC<SocialLinksWidgetProps> = ({ links = DE
     return (
         <div
             className={`
-                fixed left-6 bottom-6 z-50 flex flex-col-reverse items-start gap-3
+                fixed left-4 bottom-4 z-50 flex flex-col-reverse items-start gap-3
                 transition-all duration-500 ease-out
                 ${isVisible
                     ? 'opacity-100 translate-x-0'
