@@ -196,6 +196,8 @@ const CustomSectionEditor: React.FC<{ section: Section, onUpdate: (s: Section) =
     const [textColor, setTextColor] = useState(section.content?.textColor || '#000000');
     const [bgImage, setBgImage] = useState(section.content?.bgImage || '');
     const [saving, setSaving] = useState(false);
+    const [uploading, setUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
 
     // Update local state when section changes
     useEffect(() => {
@@ -204,6 +206,80 @@ const CustomSectionEditor: React.FC<{ section: Section, onUpdate: (s: Section) =
         setTextColor(section.content?.textColor || '#000000');
         setBgImage(section.content?.bgImage || '');
     }, [section.id, section.content]); // added section.content dependency just in case
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            alert('Please select an image file');
+            return;
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Image size must be less than 5MB');
+            return;
+        }
+
+        setUploading(true);
+        setUploadProgress(0);
+
+        try {
+            // Generate unique filename
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${section.id}_${Date.now()}.${fileExt}`;
+            const filePath = `section-images/${fileName}`;
+
+            // Simulate progress (Supabase doesn't provide upload progress)
+            const progressInterval = setInterval(() => {
+                setUploadProgress(prev => Math.min(prev + 10, 90));
+            }, 100);
+
+            // Upload to Supabase Storage
+            const { data, error } = await supabase.storage
+                .from('section-images')
+                .upload(fileName, file, {
+                    cacheControl: '3600',
+                    upsert: true
+                });
+
+            clearInterval(progressInterval);
+
+            if (error) {
+                console.error('Upload error:', error);
+                if (error.message.includes('bucket') || error.message.includes('not found')) {
+                    alert('خطأ: الـ bucket "section-images" غير موجود.\nاذهب لـ Supabase Dashboard > Storage وأنشئ bucket اسمه "section-images"');
+                } else {
+                    alert('Failed to upload image: ' + error.message);
+                }
+                return;
+            }
+
+            setUploadProgress(100);
+
+            // Get public URL
+            const { data: { publicUrl } } = supabase.storage
+                .from('section-images')
+                .getPublicUrl(fileName);
+
+            setBgImage(publicUrl);
+
+            // Auto-save after upload
+            setTimeout(() => setUploadProgress(0), 1000);
+
+        } catch (error) {
+            console.error('Upload error:', error);
+            alert('Error uploading image');
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const handleRemoveImage = () => {
+        setBgImage('');
+    };
 
     const handleSave = async () => {
         setSaving(true);
@@ -222,7 +298,7 @@ const CustomSectionEditor: React.FC<{ section: Section, onUpdate: (s: Section) =
                 .eq('id', section.id);
 
             if (error) throw error;
-            onUpdate();
+            onUpdate({ ...section, content: newContent });
             alert('Section updated successfully!');
         } catch (error) {
             console.error('Error updating section:', error);
@@ -231,20 +307,6 @@ const CustomSectionEditor: React.FC<{ section: Section, onUpdate: (s: Section) =
             setSaving(false);
         }
     };
-
-    /*
-    const modules = {
-        toolbar: [
-            [{ 'header': [1, 2, 3, false] }],
-            ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-            [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
-            ['link', 'image', 'video'],
-            ['clean'],
-            [{ 'color': [] }, { 'background': [] }],
-            [{ 'align': [] }]
-        ],
-    };
-    */
 
     return (
         <div className="space-y-6 animate-fade-in">
@@ -273,15 +335,78 @@ const CustomSectionEditor: React.FC<{ section: Section, onUpdate: (s: Section) =
                         <span className="text-xs text-slate-500 font-mono">{textColor}</span>
                     </div>
                 </div>
-                <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Background Image URL</label>
-                    <input
-                        type="text"
-                        value={bgImage}
-                        onChange={(e) => setBgImage(e.target.value)}
-                        className="w-full px-3 py-2 border rounded-md border-slate-200 dark:bg-slate-700 dark:border-slate-600 focus:ring-2 focus:ring-cyan-500"
-                        placeholder="https://example.com/image.jpg"
-                    />
+
+                {/* Image Upload Section */}
+                <div className="md:col-span-1">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        Background Image
+                    </label>
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                            <label className={`flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer transition-all ${uploading ? 'bg-slate-300 cursor-not-allowed' : 'bg-cyan-600 hover:bg-cyan-700 text-white'}`}>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleImageUpload}
+                                    disabled={uploading}
+                                    className="hidden"
+                                />
+                                {uploading ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                )}
+                                <span className="text-sm">{uploading ? 'Uploading...' : 'Upload Image'}</span>
+                            </label>
+                            {bgImage && (
+                                <button
+                                    type="button"
+                                    onClick={handleRemoveImage}
+                                    className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition"
+                                    title="Remove Image"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Progress Bar */}
+                        {uploadProgress > 0 && (
+                            <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
+                                <div
+                                    className="bg-cyan-500 h-full transition-all duration-300 ease-out"
+                                    style={{ width: `${uploadProgress}%` }}
+                                />
+                            </div>
+                        )}
+
+                        {/* Image Preview */}
+                        {bgImage && (
+                            <div className="relative rounded-lg overflow-hidden border border-slate-200 dark:border-slate-600">
+                                <img
+                                    src={bgImage}
+                                    alt="Background preview"
+                                    className="w-full h-24 object-cover"
+                                />
+                                <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs px-2 py-1 truncate">
+                                    {bgImage.split('/').pop()}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Or enter URL manually */}
+                        <input
+                            type="text"
+                            value={bgImage}
+                            onChange={(e) => setBgImage(e.target.value)}
+                            className="w-full px-3 py-2 text-xs border rounded-md border-slate-200 dark:bg-slate-700 dark:border-slate-600 focus:ring-2 focus:ring-cyan-500"
+                            placeholder="Or paste image URL..."
+                        />
+                    </div>
                 </div>
             </div>
 
