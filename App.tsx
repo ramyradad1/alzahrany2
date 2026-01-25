@@ -16,6 +16,7 @@ import { ProductModal } from './components/ProductModal';
 import { AboutPage } from './components/AboutPage';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Footer } from './components/Footer';
+import { BackgroundAnimation } from './components/BackgroundAnimation';
 import { translations } from './translations';
 import { Product, Partner, Section, Language, ProductFormData } from './types';
 import { FlaskConical } from 'lucide-react';
@@ -172,6 +173,9 @@ const App = () => {
   return (
     <ErrorBoundary>
       <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'dark bg-slate-950 text-white' : 'bg-slate-50 text-slate-900'} font-sans`}>
+        {/* Animated Background */}
+        <BackgroundAnimation />
+
         {productModalOpen && <ProductModal product={productModalOpen} onClose={() => setProductModalOpen(null)} t={t} />}
 
         <Routes>
