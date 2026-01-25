@@ -195,6 +195,9 @@ const CustomSectionEditor: React.FC<{ section: Section, onUpdate: (s: Section) =
     const [bgColor, setBgColor] = useState(section.content?.bgColor || '#ffffff');
     const [textColor, setTextColor] = useState(section.content?.textColor || '#000000');
     const [bgImage, setBgImage] = useState(section.content?.bgImage || '');
+    const [bgPosition, setBgPosition] = useState(section.content?.bgPosition || 'center');
+    const [bgSize, setBgSize] = useState(section.content?.bgSize || 'cover');
+    const [bgOpacity, setBgOpacity] = useState(section.content?.bgOpacity ?? 1);
     const [saving, setSaving] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
@@ -205,7 +208,10 @@ const CustomSectionEditor: React.FC<{ section: Section, onUpdate: (s: Section) =
         setBgColor(section.content?.bgColor || '#ffffff');
         setTextColor(section.content?.textColor || '#000000');
         setBgImage(section.content?.bgImage || '');
-    }, [section.id, section.content]); // added section.content dependency just in case
+        setBgPosition(section.content?.bgPosition || 'center');
+        setBgSize(section.content?.bgSize || 'cover');
+        setBgOpacity(section.content?.bgOpacity ?? 1);
+    }, [section.id, section.content]);
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -289,7 +295,10 @@ const CustomSectionEditor: React.FC<{ section: Section, onUpdate: (s: Section) =
                 html,
                 bgColor,
                 textColor,
-                bgImage
+                bgImage,
+                bgPosition,
+                bgSize,
+                bgOpacity
             };
 
             const { error } = await supabase
@@ -409,6 +418,69 @@ const CustomSectionEditor: React.FC<{ section: Section, onUpdate: (s: Section) =
                     </div>
                 </div>
             </div>
+
+            {/* Image Settings - Only show when image is set */}
+            {bgImage && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700">
+                    <h4 className="col-span-full text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Image Settings</h4>
+
+                    {/* Position */}
+                    <div>
+                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Position</label>
+                        <select
+                            value={bgPosition}
+                            onChange={(e) => setBgPosition(e.target.value)}
+                            className="w-full px-3 py-2 text-sm border rounded-md border-slate-200 dark:bg-slate-700 dark:border-slate-600 focus:ring-2 focus:ring-cyan-500"
+                        >
+                            <option value="center">Center</option>
+                            <option value="top">Top</option>
+                            <option value="bottom">Bottom</option>
+                            <option value="left">Left</option>
+                            <option value="right">Right</option>
+                            <option value="top left">Top Left</option>
+                            <option value="top right">Top Right</option>
+                            <option value="bottom left">Bottom Left</option>
+                            <option value="bottom right">Bottom Right</option>
+                        </select>
+                    </div>
+
+                    {/* Size */}
+                    <div>
+                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Size</label>
+                        <select
+                            value={bgSize}
+                            onChange={(e) => setBgSize(e.target.value)}
+                            className="w-full px-3 py-2 text-sm border rounded-md border-slate-200 dark:bg-slate-700 dark:border-slate-600 focus:ring-2 focus:ring-cyan-500"
+                        >
+                            <option value="cover">Cover (Fill)</option>
+                            <option value="contain">Contain (Fit)</option>
+                            <option value="auto">Original Size</option>
+                            <option value="100% 100%">Stretch</option>
+                            <option value="50%">50%</option>
+                            <option value="75%">75%</option>
+                            <option value="150%">150%</option>
+                        </select>
+                    </div>
+
+                    {/* Opacity */}
+                    <div>
+                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                            Opacity: {Math.round(bgOpacity * 100)}%
+                        </label>
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="range"
+                                min="0"
+                                max="1"
+                                step="0.1"
+                                value={bgOpacity}
+                                onChange={(e) => setBgOpacity(parseFloat(e.target.value))}
+                                className="w-full h-2 bg-slate-200 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Content (HTML Supported)</label>
