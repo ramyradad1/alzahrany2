@@ -198,6 +198,8 @@ const CustomSectionEditor: React.FC<{ section: Section, onUpdate: (s: Section) =
     const [bgPosition, setBgPosition] = useState(section.content?.bgPosition || 'center');
     const [bgSize, setBgSize] = useState(section.content?.bgSize || 'cover');
     const [bgOpacity, setBgOpacity] = useState(section.content?.bgOpacity ?? 1);
+    const [sectionHeight, setSectionHeight] = useState(section.content?.sectionHeight || 'auto');
+    const [paddingY, setPaddingY] = useState(section.content?.paddingY || '64');
     const [saving, setSaving] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
@@ -211,6 +213,8 @@ const CustomSectionEditor: React.FC<{ section: Section, onUpdate: (s: Section) =
         setBgPosition(section.content?.bgPosition || 'center');
         setBgSize(section.content?.bgSize || 'cover');
         setBgOpacity(section.content?.bgOpacity ?? 1);
+        setSectionHeight(section.content?.sectionHeight || 'auto');
+        setPaddingY(section.content?.paddingY || '64');
     }, [section.id, section.content]);
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -298,7 +302,9 @@ const CustomSectionEditor: React.FC<{ section: Section, onUpdate: (s: Section) =
                 bgImage,
                 bgPosition,
                 bgSize,
-                bgOpacity
+                bgOpacity,
+                sectionHeight,
+                paddingY
             };
 
             const { error } = await supabase
@@ -481,6 +487,51 @@ const CustomSectionEditor: React.FC<{ section: Section, onUpdate: (s: Section) =
                     </div>
                 </div>
             )}
+
+            {/* Section Size Settings */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700">
+                <h4 className="col-span-full text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Section Size</h4>
+
+                {/* Height */}
+                <div>
+                    <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Minimum Height</label>
+                    <select
+                        value={sectionHeight}
+                        onChange={(e) => setSectionHeight(e.target.value)}
+                        className="w-full px-3 py-2 text-sm border rounded-md border-slate-200 dark:bg-slate-700 dark:border-slate-600 focus:ring-2 focus:ring-cyan-500"
+                    >
+                        <option value="auto">Auto (fit content)</option>
+                        <option value="200px">Small (200px)</option>
+                        <option value="300px">Medium (300px)</option>
+                        <option value="400px">Large (400px)</option>
+                        <option value="500px">X-Large (500px)</option>
+                        <option value="600px">XX-Large (600px)</option>
+                        <option value="100vh">Full Screen</option>
+                        <option value="50vh">Half Screen</option>
+                    </select>
+                </div>
+
+                {/* Padding */}
+                <div>
+                    <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                        Vertical Padding: {paddingY}px
+                    </label>
+                    <input
+                        type="range"
+                        min="0"
+                        max="200"
+                        step="8"
+                        value={paddingY}
+                        onChange={(e) => setPaddingY(e.target.value)}
+                        className="w-full h-2 bg-slate-200 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                    />
+                    <div className="flex justify-between text-xs text-slate-400 mt-1">
+                        <span>0</span>
+                        <span>100</span>
+                        <span>200</span>
+                    </div>
+                </div>
+            </div>
 
             <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Content (HTML Supported)</label>

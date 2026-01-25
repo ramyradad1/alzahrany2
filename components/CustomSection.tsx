@@ -16,12 +16,17 @@ export const CustomSection: React.FC<CustomSectionProps> = ({ section }) => {
     const bgPosition = content?.bgPosition || 'center';
     const bgSize = content?.bgSize || 'cover';
     const bgOpacity = content?.bgOpacity ?? 1;
+    const sectionHeight = content?.sectionHeight || 'auto';
+    const paddingY = content?.paddingY || '64'; // default py-16 = 64px
 
     const containerStyle: React.CSSProperties = {
         backgroundColor: bgColor,
         color: textColor,
         position: 'relative',
         overflow: 'hidden',
+        minHeight: sectionHeight === 'auto' ? 'auto' : sectionHeight,
+        paddingTop: `${paddingY}px`,
+        paddingBottom: `${paddingY}px`,
     };
 
     const bgImageStyle: React.CSSProperties = bgImage ? {
@@ -39,7 +44,7 @@ export const CustomSection: React.FC<CustomSectionProps> = ({ section }) => {
     } : {};
 
     return (
-        <div id={section.id} className="w-full py-16 px-4" style={containerStyle}>
+        <div id={section.id} className="w-full px-4" style={containerStyle}>
             {/* Background Image Layer with Opacity */}
             {bgImage && <div style={bgImageStyle} />}
 
@@ -51,4 +56,3 @@ export const CustomSection: React.FC<CustomSectionProps> = ({ section }) => {
         </div>
     );
 };
-
