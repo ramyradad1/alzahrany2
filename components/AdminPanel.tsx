@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, LogOut, Package, Users, LayoutGrid, Home, Loader2, ChevronLeft, ChevronRight, Settings, Share2, FlaskConical, Menu, X } from 'lucide-react';
+import { Lock, LogOut, Package, Users, LayoutGrid, Home, Loader2, ChevronLeft, ChevronRight, Settings, FlaskConical, Menu, X } from 'lucide-react';
 import { supabase } from '../supabase';
 import { Translations, Language } from '../types';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
@@ -93,6 +93,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ t, lang }) => {
     { to: '/admin/products', icon: Package, label: t.portfolio },
     { to: '/admin/partners', icon: Users, label: t.managePartners },
     { to: '/admin/sections', icon: LayoutGrid, label: 'Sections' },
+    { to: '/admin/settings', icon: Settings, label: 'Settings' },
   ];
 
   // --- LOGIN VIEW ---
@@ -307,11 +308,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ t, lang }) => {
               {location.pathname.includes('products') && t.portfolio}
               {location.pathname.includes('partners') && t.managePartners}
               {location.pathname.includes('sections') && 'Sections'}
+              {location.pathname.includes('settings') && 'Settings'}
             </h2>
             <p className="text-slate-500 dark:text-slate-400 mt-1">
               {location.pathname.includes('products') && 'Manage your product catalog'}
               {location.pathname.includes('partners') && 'Manage partner logos and information'}
               {location.pathname.includes('sections') && 'Customize page sections and layouts'}
+              {location.pathname.includes('settings') && 'Customize logo, menu, and social links'}
             </p>
           </div>
 
