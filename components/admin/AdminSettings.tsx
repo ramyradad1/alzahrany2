@@ -68,15 +68,20 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ t }) => {
     }, []);
 
     const fetchSettings = async () => {
+        setLoading(true);
         try {
+            console.log('[AdminSettings] Fetching settings...');
             const { data, error } = await supabase
                 .from('site_settings')
                 .select('*')
                 .eq('id', 'main')
                 .single();
 
+            console.log('[AdminSettings] Result:', { data, error });
+
             if (error && error.code !== 'PGRST116') {
                 console.error('Error fetching settings:', error);
+                setError('Failed to load settings: ' + error.message);
             }
 
             if (data) {
@@ -87,8 +92,9 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ t }) => {
                     social_links: data.social_links || DEFAULT_SETTINGS.social_links,
                 });
             }
-        } catch (e) {
-            console.error('Error:', e);
+        } catch (e: any) {
+            console.error('[AdminSettings] Error:', e);
+            setError('Error loading settings: ' + (e.message || 'Unknown error'));
         } finally {
             setLoading(false);
         }
