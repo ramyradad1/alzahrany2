@@ -8,6 +8,7 @@ import { ProductCatalog } from './components/ProductCatalog';
 import { Partners } from './components/Partners';
 import { CustomSection } from './components/CustomSection';
 import { ScrollToTop } from './components/ScrollToTop';
+import { ScrollToTopButton } from './components/ScrollToTopButton';
 import { AdminPanel } from './components/AdminPanel';
 import { AdminProducts } from './components/admin/AdminProducts';
 import { AdminPartners } from './components/admin/AdminPartners';
@@ -196,6 +197,7 @@ const App = () => {
               </main>
               <Footer t={t} lang={lang} content={getSection('footer')?.content} />
               <ScrollToTop />
+              <ScrollToTopButton />
             </>
           }>
             <Route path="/" element={
