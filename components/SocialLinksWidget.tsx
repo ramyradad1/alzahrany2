@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MessageCircle, Facebook, Twitter, Instagram, Linkedin, X, Share2 } from 'lucide-react';
 
 interface SocialLink {
@@ -54,9 +54,34 @@ interface SocialLinksWidgetProps {
 
 export const SocialLinksWidget: React.FC<SocialLinksWidgetProps> = ({ links = DEFAULT_LINKS }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const [isVisible, setIsVisible] = useState(false);
+
+    // Show widget only after scrolling past hero section (300px)
+    useEffect(() => {
+        const handleScroll = () => {
+            if (window.scrollY > 300) {
+                setIsVisible(true);
+            } else {
+                setIsVisible(false);
+                setIsOpen(false); // Close menu when hidden
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     return (
-        <div className="fixed left-6 bottom-6 z-50 flex flex-col-reverse items-start gap-3">
+        <div
+            className={`
+                fixed left-6 bottom-6 z-50 flex flex-col-reverse items-start gap-3
+                transition-all duration-500 ease-out
+                ${isVisible
+                    ? 'opacity-100 translate-x-0'
+                    : 'opacity-0 -translate-x-20 pointer-events-none'
+                }
+            `}
+        >
             {/* Social Links - Animate in/out */}
             <div className={`flex flex-col gap-2 transition-all duration-300 ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
                 {links.map((link, index) => (
@@ -109,7 +134,7 @@ export const SocialLinksWidget: React.FC<SocialLinksWidgetProps> = ({ links = DE
             </button>
 
             {/* Pulse effect when closed */}
-            {!isOpen && (
+            {!isOpen && isVisible && (
                 <span className="absolute bottom-0 left-0 w-14 h-14 rounded-full bg-cyan-400/30 animate-ping" />
             )}
         </div>
