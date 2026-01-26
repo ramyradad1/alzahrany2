@@ -212,7 +212,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ t }) => {
     ];
 
     return (
-        <div className="p-6">
+        <div className="p-6 min-h-[400px] text-slate-900 dark:text-white">
             {/* Section Tabs */}
             <div className="flex gap-2 mb-6 border-b border-slate-200 dark:border-slate-700 pb-4">
                 {sections.map(section => (
