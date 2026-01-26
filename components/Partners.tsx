@@ -35,11 +35,11 @@ export const Partners: React.FC<PartnersProps> = ({ partners, title, content, la
         <div className="absolute top-0 left-0 w-24 h-full bg-gradient-to-r from-white dark:from-slate-900 to-transparent z-10"></div>
         <div className="absolute top-0 right-0 w-24 h-full bg-gradient-to-l from-white dark:from-slate-900 to-transparent z-10"></div>
 
-        <div className="flex animate-scroll hover:pause-animation w-max">
+        <div className="flex animate-scroll hover:pause-animation w-max py-8">
           {displayPartners.map((partner, index) => (
             <div
               key={`${partner.id}-${index}`}
-              className="flex-shrink-0 mx-8 md:mx-16 flex items-center justify-center transition-all duration-300 hover:scale-125 cursor-pointer"
+              className="flex-shrink-0 mx-8 md:mx-16 flex items-center justify-center transition-all duration-500 ease-out hover:scale-110 hover:-translate-y-2 hover:drop-shadow-2xl z-0 hover:z-10 cursor-pointer"
             >
               <div className="h-16 w-32 md:h-20 md:w-40 flex items-center justify-center">
                 {partner.logo ? (
