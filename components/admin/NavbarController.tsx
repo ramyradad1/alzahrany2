@@ -131,7 +131,7 @@ const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
                     {/* Popover */}
                     <div
                         id={`icon-popover-${item.id}`}
-                        className="hidden absolute top-full left-0 mt-2 w-64 p-3 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 z-50 animate-fadeIn"
+                        className="hidden absolute top-full right-0 mt-2 w-72 p-4 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 z-[100] animate-fadeIn"
                     >
                         <div className="flex items-center justify-between mb-2">
                             <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Icon Source</span>
