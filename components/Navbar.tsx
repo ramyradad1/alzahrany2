@@ -83,41 +83,72 @@ const MobileAccordion: React.FC<{
   lang: Language;
   onNavigate: (href: string) => void;
   depth?: number;
-}> = ({ items, lang, onNavigate, depth = 0 }) => {
+  currentPath: string;
+}> = ({ items, lang, onNavigate, depth = 0, currentPath }) => {
   const [openId, setOpenId] = useState<string | null>(null);
 
-  return (
-    <div className={`${depth > 0 ? 'ml-4 border-l-2 border-slate-200 dark:border-slate-600 pl-2' : ''}`}>
-      {items.sort((a, b) => a.order - b.order).map(item => (
-        <div key={item.id}>
-          <div className="flex items-center">
-            <button
-              onClick={() => onNavigate(item.href)}
-              className={`flex-1 text-left px-4 py-2 rounded-lg font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700`}
-            >
-              {lang === 'en' ? item.label : item.labelAr}
-            </button>
-            {item.children && item.children.length > 0 && (
-              <button
-                onClick={() => setOpenId(openId === item.id ? null : item.id)}
-                className="p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded"
-              >
-                <ChevronDown className={`w-4 h-4 transition-transform ${openId === item.id ? 'rotate-180' : ''}`} />
-              </button>
-            )}
-          </div>
+  const isActive = (href: string) => {
+    if (currentPath === '/admin') return false;
+    if (href.includes('#')) {
+      const [path] = href.split('#');
+      return currentPath === (path || '/');
+    }
+    return currentPath === href;
+  };
 
-          {/* Nested accordion */}
-          {openId === item.id && item.children && item.children.length > 0 && (
-            <MobileAccordion
-              items={item.children}
-              lang={lang}
-              onNavigate={onNavigate}
-              depth={depth + 1}
-            />
-          )}
-        </div>
-      ))}
+  return (
+    <div className={`space-y-1 ${depth > 0 ? 'ml-4 pl-4 border-l-2 border-slate-100 dark:border-slate-800' : ''}`}>
+      {items.sort((a, b) => a.order - b.order).map(item => {
+        const active = isActive(item.href);
+        const hasChildren = item.children && item.children.length > 0;
+
+        return (
+          <div key={item.id} className="overflow-hidden">
+            <div className={`flex items-center justify-between rounded-xl transition-all duration-200 ${active
+              ? 'bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/10 text-cyan-700 dark:text-cyan-400'
+              : 'hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-700 dark:text-slate-300'
+              }`}>
+              <button
+                onClick={() => onNavigate(item.href)}
+                className="flex-1 text-left px-4 py-3 font-medium flex items-center gap-3"
+              >
+                <div className={`w-1.5 h-1.5 rounded-full transition-colors ${active ? 'bg-cyan-500' : 'bg-slate-300 dark:bg-slate-600'}`} />
+                {lang === 'en' ? item.label : item.labelAr}
+              </button>
+
+              {hasChildren && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setOpenId(openId === item.id ? null : item.id);
+                  }}
+                  className={`p-3 transition-colors ${active ? 'text-cyan-600 dark:text-cyan-400' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
+                >
+                  <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${openId === item.id ? 'rotate-180' : ''}`} />
+                </button>
+              )}
+            </div>
+
+            {/* Nested accordion with smooth height transition */}
+            <div className={`grid transition-[grid-template-rows] duration-300 ease-out ${openId === item.id ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+              }`}>
+              <div className="overflow-hidden">
+                <div className="pt-2 pb-1">
+                  {hasChildren && (
+                    <MobileAccordion
+                      items={item.children!}
+                      lang={lang}
+                      onNavigate={onNavigate}
+                      depth={depth + 1}
+                      currentPath={currentPath}
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 };
@@ -365,17 +396,19 @@ export const Navbar: React.FC<NavbarProps> = ({
             items={menuItems}
             lang={lang}
             onNavigate={handleNavigation}
+            currentPath={location.pathname}
           />
 
           {/* Admin Link */}
           <Link
             to="/admin"
             onClick={() => setIsMobileMenuOpen(false)}
-            className={`block text-left rtl:text-right px-4 py-2 rounded-lg font-medium ${location.pathname.startsWith('/admin')
-              ? 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400'
-              : 'text-slate-600 dark:text-slate-300'
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 ${location.pathname.startsWith('/admin')
+              ? 'bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/10 text-cyan-700 dark:text-cyan-400'
+              : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
               }`}
           >
+            <div className={`w-1.5 h-1.5 rounded-full transition-colors ${location.pathname.startsWith('/admin') ? 'bg-cyan-500' : 'bg-slate-300 dark:bg-slate-600'}`} />
             {t.admin}
           </Link>
         </div>
