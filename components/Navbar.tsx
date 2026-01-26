@@ -1,14 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, Moon, Sun, Globe, Search, Menu, X, FlaskConical } from 'lucide-react';
+import { Lock, Moon, Sun, Globe, Search, Menu, X, FlaskConical, ChevronDown, ChevronRight } from 'lucide-react';
 import { Language, Translations } from '../types';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../utils/supabase';
+
+interface MenuItem {
+  id: string;
+  label: string;
+  labelAr: string;
+  href: string;
+  order: number;
+  children?: MenuItem[];
+}
 
 interface NavbarConfig {
   logo_url: string;
   site_name: string;
   site_name_ar: string;
-  menu_items: { id: string; label: string; labelAr: string; href: string; order: number }[];
+  menu_items: MenuItem[];
 }
 
 interface NavbarProps {
@@ -19,6 +28,94 @@ interface NavbarProps {
   t: Translations;
   onSearch: (query: string) => void;
 }
+
+// Desktop Dropdown Component (recursive)
+const DesktopDropdown: React.FC<{
+  items: MenuItem[];
+  lang: Language;
+  onNavigate: (href: string) => void;
+  depth?: number;
+}> = ({ items, lang, onNavigate, depth = 0 }) => {
+  const [openId, setOpenId] = useState<string | null>(null);
+
+  return (
+    <div className={`absolute ${depth === 0 ? 'top-full left-0 mt-2' : 'left-full top-0 ml-1'} bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 py-2 min-w-[180px] z-50`}>
+      {items.sort((a, b) => a.order - b.order).map(item => (
+        <div
+          key={item.id}
+          className="relative"
+          onMouseEnter={() => item.children?.length ? setOpenId(item.id) : null}
+          onMouseLeave={() => setOpenId(null)}
+        >
+          <button
+            onClick={() => onNavigate(item.href)}
+            className="w-full px-4 py-2 text-left flex items-center justify-between text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+          >
+            <span>{lang === 'en' ? item.label : item.labelAr}</span>
+            {item.children && item.children.length > 0 && (
+              <ChevronRight className="w-4 h-4 text-slate-400" />
+            )}
+          </button>
+
+          {/* Nested dropdown */}
+          {openId === item.id && item.children && item.children.length > 0 && (
+            <DesktopDropdown
+              items={item.children}
+              lang={lang}
+              onNavigate={onNavigate}
+              depth={depth + 1}
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// Mobile Accordion Component (recursive)
+const MobileAccordion: React.FC<{
+  items: MenuItem[];
+  lang: Language;
+  onNavigate: (href: string) => void;
+  depth?: number;
+}> = ({ items, lang, onNavigate, depth = 0 }) => {
+  const [openId, setOpenId] = useState<string | null>(null);
+
+  return (
+    <div className={`${depth > 0 ? 'ml-4 border-l-2 border-slate-200 dark:border-slate-600 pl-2' : ''}`}>
+      {items.sort((a, b) => a.order - b.order).map(item => (
+        <div key={item.id}>
+          <div className="flex items-center">
+            <button
+              onClick={() => onNavigate(item.href)}
+              className={`flex-1 text-left px-4 py-2 rounded-lg font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700`}
+            >
+              {lang === 'en' ? item.label : item.labelAr}
+            </button>
+            {item.children && item.children.length > 0 && (
+              <button
+                onClick={() => setOpenId(openId === item.id ? null : item.id)}
+                className="p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded"
+              >
+                <ChevronDown className={`w-4 h-4 transition-transform ${openId === item.id ? 'rotate-180' : ''}`} />
+              </button>
+            )}
+          </div>
+
+          {/* Nested accordion */}
+          {openId === item.id && item.children && item.children.length > 0 && (
+            <MobileAccordion
+              items={item.children}
+              lang={lang}
+              onNavigate={onNavigate}
+              depth={depth + 1}
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
 
 export const Navbar: React.FC<NavbarProps> = ({
   isDarkMode,
@@ -31,6 +128,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [config, setConfig] = useState<NavbarConfig | null>(null);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -59,55 +157,44 @@ export const Navbar: React.FC<NavbarProps> = ({
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       onSearch(searchTerm);
-
-      // Auto-navigate to catalog if searching from another page
       if (searchTerm.trim().length > 0 && location.pathname !== '/catalog' && !location.pathname.startsWith('/admin')) {
         navigate('/catalog');
         window.scrollTo(0, 0);
       }
-
       setIsMobileMenuOpen(false);
     }
   };
 
-  // Default nav links fallback
-  const defaultNavLinks = [
-    { path: '/', label: t.navHome, labelAr: 'الرئيسية', id: 'hero' },
-    { path: '/catalog', label: t.navProducts, labelAr: 'المنتجات', id: null },
-    { path: '/', label: t.navPartners, labelAr: 'الشركاء', id: 'partners' },
-    { path: '/about', label: t.navAbout, labelAr: 'من نحن', id: null },
+  // Default menu items
+  const defaultMenuItems: MenuItem[] = [
+    { id: '1', label: 'Home', labelAr: 'الرئيسية', href: '/', order: 0 },
+    { id: '2', label: 'Products', labelAr: 'المنتجات', href: '/catalog', order: 1 },
+    { id: '3', label: 'Partners', labelAr: 'الشركاء', href: '/#partners', order: 2 },
+    { id: '4', label: 'About', labelAr: 'من نحن', href: '/about', order: 3 },
   ];
 
-  // Use database config or fallback to defaults
-  const navLinks = config?.menu_items?.length
-    ? config.menu_items.sort((a, b) => a.order - b.order).map(item => ({
-      path: item.href.includes('#') ? item.href.split('#')[0] || '/' : item.href,
-      label: lang === 'en' ? item.label : item.labelAr,
-      id: item.href.includes('#') ? item.href.split('#')[1] : null,
-    }))
-    : defaultNavLinks.map(link => ({
-      ...link,
-      label: lang === 'en' ? link.label : link.labelAr,
-    }));
+  const menuItems = config?.menu_items?.length ? config.menu_items : defaultMenuItems;
 
-  // Get site name from config
   const siteName = config
     ? (lang === 'en' ? config.site_name : config.site_name_ar)
     : (lang === 'en' ? 'Alzahrany Trading' : 'الزهراني للتجارة');
 
-  const handleNavigation = (path: string, id?: string | null) => {
+  const handleNavigation = (href: string) => {
     setIsMobileMenuOpen(false);
+    setOpenDropdown(null);
 
-    if (id) {
-      if (location.pathname !== '/') {
-        navigate(path);
-        // Wait for navigation then scroll
+    if (href.includes('#')) {
+      const [path, hash] = href.split('#');
+      const targetPath = path || '/';
+
+      if (location.pathname !== targetPath) {
+        navigate(targetPath);
         setTimeout(() => {
-          const element = document.getElementById(id);
+          const element = document.getElementById(hash);
           element?.scrollIntoView({ behavior: 'smooth' });
         }, 100);
       } else {
-        const element = document.getElementById(id);
+        const element = document.getElementById(hash);
         if (element) {
           const navHeight = 64;
           const elementPosition = element.getBoundingClientRect().top;
@@ -116,28 +203,30 @@ export const Navbar: React.FC<NavbarProps> = ({
         }
       }
     } else {
-      navigate(path);
+      navigate(href);
       window.scrollTo(0, 0);
     }
   };
 
-  const isActive = (path: string, id?: string | null) => {
+  const isActive = (href: string) => {
     if (location.pathname === '/admin') return false;
-    if (id) return location.pathname === path && location.hash === `#${id}`;
-    return location.pathname === path;
+    if (href.includes('#')) {
+      const [path] = href.split('#');
+      return location.pathname === (path || '/');
+    }
+    return location.pathname === href;
   };
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm transition-colors duration-300">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
 
-        {/* 1. Logo */}
+        {/* Logo */}
         <div
           className="flex items-center gap-3 cursor-pointer group flex-shrink-0"
           onClick={() => handleNavigation('/')}
           title={t.tooltipHome}
         >
-          {/* Logo - custom image or default icon */}
           {config?.logo_url ? (
             <img src={config.logo_url} alt="Logo" className="h-10 w-10 object-contain group-hover:scale-105 transition-transform duration-300" />
           ) : (
@@ -150,26 +239,43 @@ export const Navbar: React.FC<NavbarProps> = ({
           </span>
         </div>
 
-        {/* 2. Desktop Navigation (Center) */}
+        {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-1 rtl:space-x-reverse bg-slate-100/50 dark:bg-slate-800/50 rounded-full px-1 py-1 border border-slate-200/50 dark:border-slate-700/50">
-          {navLinks.map((link, index) => (
-            <button
-              key={index}
-              onClick={() => handleNavigation(link.path, link.id)}
-              className={`px-5 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ${isActive(link.path, link.id)
-                ? 'bg-white dark:bg-slate-700 text-cyan-600 dark:text-cyan-400 shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                }`}
+          {menuItems.sort((a, b) => a.order - b.order).map(item => (
+            <div
+              key={item.id}
+              className="relative"
+              onMouseEnter={() => item.children?.length ? setOpenDropdown(item.id) : null}
+              onMouseLeave={() => setOpenDropdown(null)}
             >
-              {link.label}
-            </button>
+              <button
+                onClick={() => handleNavigation(item.href)}
+                className={`px-5 py-1.5 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-1 ${isActive(item.href)
+                  ? 'bg-white dark:bg-slate-700 text-cyan-600 dark:text-cyan-400 shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+              >
+                {lang === 'en' ? item.label : item.labelAr}
+                {item.children && item.children.length > 0 && (
+                  <ChevronDown className="w-3 h-3" />
+                )}
+              </button>
+
+              {/* Desktop Dropdown */}
+              {openDropdown === item.id && item.children && item.children.length > 0 && (
+                <DesktopDropdown
+                  items={item.children}
+                  lang={lang}
+                  onNavigate={handleNavigation}
+                />
+              )}
+            </div>
           ))}
         </div>
 
-        {/* 3. Actions (Right) */}
+        {/* Actions */}
         <div className="flex items-center gap-3 flex-shrink-0">
-
-          {/* Search (Only visible when Public view is active) */}
+          {/* Search */}
           {!location.pathname.startsWith('/admin') && (
             <div className="relative hidden lg:block w-48 transition-all focus-within:w-64">
               <div className="absolute inset-y-0 left-0 rtl:right-0 rtl:left-auto pl-3 rtl:pr-3 flex items-center pointer-events-none">
@@ -187,7 +293,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           )}
 
-          {/* Admin Lock */}
+          {/* Admin */}
           <Link
             to="/admin"
             className={`p-2 rounded-full transition-colors ${location.pathname.startsWith('/admin')
@@ -231,9 +337,10 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* Mobile Search & Menu */}
-      <div className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 ${isMobileMenuOpen ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0'}`}>
+      {/* Mobile Menu */}
+      <div className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 ${isMobileMenuOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
         <div className="px-4 py-3 space-y-3">
+          {/* Mobile Search */}
           {!location.pathname.startsWith('/admin') && (
             <div className="relative mb-4">
               <Search className="absolute left-3 rtl:right-3 top-2.5 h-4 w-4 text-slate-400" />
@@ -247,30 +354,25 @@ export const Navbar: React.FC<NavbarProps> = ({
               />
             </div>
           )}
-          <div className="flex flex-col space-y-1">
-            {navLinks.map((link, index) => (
-              <button
-                key={index}
-                onClick={() => handleNavigation(link.path, link.id)}
-                className={`text-left rtl:text-right px-4 py-2 rounded-lg font-medium ${isActive(link.path, link.id)
-                  ? 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400'
-                  : 'text-slate-600 dark:text-slate-300'
-                  }`}
-              >
-                {link.label}
-              </button>
-            ))}
-            <Link
-              to="/admin"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className={`text-left rtl:text-right px-4 py-2 rounded-lg font-medium ${location.pathname.startsWith('/admin')
-                ? 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400'
-                : 'text-slate-600 dark:text-slate-300'
-                }`}
-            >
-              {t.admin}
-            </Link>
-          </div>
+
+          {/* Mobile Navigation with Accordions */}
+          <MobileAccordion
+            items={menuItems}
+            lang={lang}
+            onNavigate={handleNavigation}
+          />
+
+          {/* Admin Link */}
+          <Link
+            to="/admin"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`block text-left rtl:text-right px-4 py-2 rounded-lg font-medium ${location.pathname.startsWith('/admin')
+              ? 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400'
+              : 'text-slate-600 dark:text-slate-300'
+              }`}
+          >
+            {t.admin}
+          </Link>
         </div>
       </div>
     </nav>

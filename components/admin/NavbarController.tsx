@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../utils/supabase';
 import {
-    Save, Plus, Trash2, ChevronUp, ChevronDown,
+    Save, Plus, Trash2, ChevronUp, ChevronDown, ChevronRight,
     Loader2, Check, AlertCircle, Image, Type, Link as LinkIcon
 } from 'lucide-react';
 
@@ -11,6 +11,7 @@ interface MenuItem {
     labelAr: string;
     href: string;
     order: number;
+    children?: MenuItem[];
 }
 
 interface NavbarConfig {
@@ -26,10 +27,129 @@ const DEFAULT_CONFIG: NavbarConfig = {
     site_name_ar: 'الزهراني للتجارة',
     menu_items: [
         { id: '1', label: 'Home', labelAr: 'الرئيسية', href: '/', order: 0 },
-        { id: '2', label: 'Products', labelAr: 'المنتجات', href: '/catalog', order: 1 },
+        { id: '2', label: 'Products', labelAr: 'المنتجات', href: '/catalog', order: 1, children: [] },
         { id: '3', label: 'Partners', labelAr: 'الشركاء', href: '/#partners', order: 2 },
         { id: '4', label: 'About', labelAr: 'من نحن', href: '/about', order: 3 },
     ]
+};
+
+// Recursive MenuItem Editor Component
+interface MenuItemEditorProps {
+    item: MenuItem;
+    index: number;
+    totalItems: number;
+    depth: number;
+    onUpdate: (id: string, field: keyof MenuItem, value: any) => void;
+    onDelete: (id: string) => void;
+    onMove: (id: string, direction: 'up' | 'down') => void;
+    onAddChild: (parentId: string) => void;
+}
+
+const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
+    item, index, totalItems, depth, onUpdate, onDelete, onMove, onAddChild
+}) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const hasChildren = item.children && item.children.length > 0;
+
+    return (
+        <div className={`${depth > 0 ? 'ml-6 border-l-2 border-cyan-200 dark:border-cyan-800 pl-3' : ''}`}>
+            <div className={`flex items-center gap-2 p-3 bg-slate-50 dark:bg-slate-700 rounded-lg ${depth > 0 ? 'bg-slate-100 dark:bg-slate-600' : ''}`}>
+                {/* Expand/Collapse for items with children */}
+                <button
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className={`p-1 hover:bg-slate-200 dark:hover:bg-slate-500 rounded ${!hasChildren && !item.children ? 'opacity-0' : ''}`}
+                    disabled={!hasChildren && !item.children}
+                >
+                    <ChevronRight className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                </button>
+
+                {/* Move Up/Down */}
+                <div className="flex flex-col gap-0.5">
+                    <button
+                        onClick={() => onMove(item.id, 'up')}
+                        disabled={index === 0}
+                        className="p-0.5 hover:bg-slate-200 dark:hover:bg-slate-500 rounded disabled:opacity-30"
+                    >
+                        <ChevronUp className="w-3 h-3" />
+                    </button>
+                    <button
+                        onClick={() => onMove(item.id, 'down')}
+                        disabled={index === totalItems - 1}
+                        className="p-0.5 hover:bg-slate-200 dark:hover:bg-slate-500 rounded disabled:opacity-30"
+                    >
+                        <ChevronDown className="w-3 h-3" />
+                    </button>
+                </div>
+
+                {/* Label EN */}
+                <input
+                    type="text"
+                    value={item.label}
+                    onChange={(e) => onUpdate(item.id, 'label', e.target.value)}
+                    placeholder="Label (EN)"
+                    className="flex-1 px-2 py-1 border rounded text-sm dark:bg-slate-600 dark:border-slate-500 dark:text-white min-w-0"
+                />
+
+                {/* Label AR */}
+                <input
+                    type="text"
+                    value={item.labelAr}
+                    onChange={(e) => onUpdate(item.id, 'labelAr', e.target.value)}
+                    placeholder="AR"
+                    className="w-24 px-2 py-1 border rounded text-sm dark:bg-slate-600 dark:border-slate-500 dark:text-white text-right"
+                    dir="rtl"
+                />
+
+                {/* URL */}
+                <input
+                    type="text"
+                    value={item.href}
+                    onChange={(e) => onUpdate(item.id, 'href', e.target.value)}
+                    placeholder="URL"
+                    className="w-28 px-2 py-1 border rounded text-sm dark:bg-slate-600 dark:border-slate-500 dark:text-white"
+                />
+
+                {/* Add Sub-item */}
+                <button
+                    onClick={() => {
+                        onAddChild(item.id);
+                        setIsExpanded(true);
+                    }}
+                    className="p-1 text-cyan-600 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 rounded"
+                    title="Add sub-item"
+                >
+                    <Plus className="w-4 h-4" />
+                </button>
+
+                {/* Delete */}
+                <button
+                    onClick={() => onDelete(item.id)}
+                    className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                >
+                    <Trash2 className="w-4 h-4" />
+                </button>
+            </div>
+
+            {/* Children */}
+            {isExpanded && item.children && item.children.length > 0 && (
+                <div className="mt-2 space-y-2">
+                    {item.children.map((child, childIndex) => (
+                        <MenuItemEditor
+                            key={child.id}
+                            item={child}
+                            index={childIndex}
+                            totalItems={item.children!.length}
+                            depth={depth + 1}
+                            onUpdate={onUpdate}
+                            onDelete={onDelete}
+                            onMove={onMove}
+                            onAddChild={onAddChild}
+                        />
+                    ))}
+                </div>
+            )}
+        </div>
+    );
 };
 
 interface NavbarControllerProps {
@@ -94,7 +214,100 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
         setSaving(false);
     };
 
-    const addMenuItem = () => {
+    // Recursive function to find and update item in tree
+    const updateItemInTree = (items: MenuItem[], id: string, field: keyof MenuItem, value: any): MenuItem[] => {
+        return items.map(item => {
+            if (item.id === id) {
+                return { ...item, [field]: value };
+            }
+            if (item.children) {
+                return { ...item, children: updateItemInTree(item.children, id, field, value) };
+            }
+            return item;
+        });
+    };
+
+    // Recursive function to delete item from tree
+    const deleteItemFromTree = (items: MenuItem[], id: string): MenuItem[] => {
+        return items
+            .filter(item => item.id !== id)
+            .map(item => ({
+                ...item,
+                children: item.children ? deleteItemFromTree(item.children, id) : undefined
+            }));
+    };
+
+    // Add child to a parent item
+    const addChildToItem = (items: MenuItem[], parentId: string): MenuItem[] => {
+        return items.map(item => {
+            if (item.id === parentId) {
+                const newChild: MenuItem = {
+                    id: Date.now().toString(),
+                    label: 'Sub-item',
+                    labelAr: 'عنصر فرعي',
+                    href: '/',
+                    order: (item.children?.length || 0),
+                };
+                return {
+                    ...item,
+                    children: [...(item.children || []), newChild]
+                };
+            }
+            if (item.children) {
+                return { ...item, children: addChildToItem(item.children, parentId) };
+            }
+            return item;
+        });
+    };
+
+    // Move item within its siblings (recursive)
+    const moveItemInTree = (items: MenuItem[], id: string, direction: 'up' | 'down'): MenuItem[] => {
+        const index = items.findIndex(item => item.id === id);
+        if (index !== -1) {
+            const newItems = [...items];
+            if (direction === 'up' && index > 0) {
+                [newItems[index], newItems[index - 1]] = [newItems[index - 1], newItems[index]];
+            } else if (direction === 'down' && index < items.length - 1) {
+                [newItems[index], newItems[index + 1]] = [newItems[index + 1], newItems[index]];
+            }
+            return newItems.map((item, i) => ({ ...item, order: i }));
+        }
+        // Recursively check children
+        return items.map(item => ({
+            ...item,
+            children: item.children ? moveItemInTree(item.children, id, direction) : undefined
+        }));
+    };
+
+    const handleUpdate = (id: string, field: keyof MenuItem, value: any) => {
+        setConfig(prev => ({
+            ...prev,
+            menu_items: updateItemInTree(prev.menu_items, id, field, value)
+        }));
+    };
+
+    const handleDelete = (id: string) => {
+        setConfig(prev => ({
+            ...prev,
+            menu_items: deleteItemFromTree(prev.menu_items, id)
+        }));
+    };
+
+    const handleMove = (id: string, direction: 'up' | 'down') => {
+        setConfig(prev => ({
+            ...prev,
+            menu_items: moveItemInTree(prev.menu_items, id, direction)
+        }));
+    };
+
+    const handleAddChild = (parentId: string) => {
+        setConfig(prev => ({
+            ...prev,
+            menu_items: addChildToItem(prev.menu_items, parentId)
+        }));
+    };
+
+    const addTopLevelItem = () => {
         const newItem: MenuItem = {
             id: Date.now().toString(),
             label: 'New Link',
@@ -103,33 +316,6 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
             order: config.menu_items.length,
         };
         setConfig({ ...config, menu_items: [...config.menu_items, newItem] });
-    };
-
-    const updateMenuItem = (id: string, field: keyof MenuItem, value: string) => {
-        setConfig({
-            ...config,
-            menu_items: config.menu_items.map(item =>
-                item.id === id ? { ...item, [field]: value } : item
-            ),
-        });
-    };
-
-    const deleteMenuItem = (id: string) => {
-        setConfig({
-            ...config,
-            menu_items: config.menu_items.filter(item => item.id !== id),
-        });
-    };
-
-    const moveMenuItem = (id: string, direction: 'up' | 'down') => {
-        const items = [...config.menu_items];
-        const index = items.findIndex(item => item.id === id);
-        if (direction === 'up' && index > 0) {
-            [items[index], items[index - 1]] = [items[index - 1], items[index]];
-        } else if (direction === 'down' && index < items.length - 1) {
-            [items[index], items[index + 1]] = [items[index + 1], items[index]];
-        }
-        setConfig({ ...config, menu_items: items.map((item, i) => ({ ...item, order: i })) });
     };
 
     if (loading) {
@@ -145,7 +331,7 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
 
     return (
         <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-2xl border border-cyan-200 dark:border-cyan-800 overflow-hidden">
-            {/* Header - Always Visible */}
+            {/* Header */}
             <button
                 onClick={() => setIsExpanded(!isExpanded)}
                 className="w-full p-6 flex items-center justify-between hover:bg-white/50 dark:hover:bg-slate-800/50 transition-colors"
@@ -156,13 +342,13 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
                     </div>
                     <div className="text-left">
                         <h3 className="font-bold text-lg text-slate-900 dark:text-white">Navbar Controller</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Customize logo, site name & navigation menu</p>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">Customize logo, site name & dropdown menus</p>
                     </div>
                 </div>
                 <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
             </button>
 
-            {/* Expandable Content */}
+            {/* Content */}
             {isExpanded && (
                 <div className="p-6 pt-0 space-y-6">
                     {/* Logo URL */}
@@ -210,68 +396,37 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
                         </div>
                     </div>
 
-                    {/* Menu Items */}
+                    {/* Menu Items with Dropdowns */}
                     <div className="bg-white dark:bg-slate-800 rounded-xl p-4">
-                        <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center justify-between mb-4">
                             <h4 className="font-semibold flex items-center gap-2 text-slate-900 dark:text-white">
-                                <LinkIcon className="w-4 h-4 text-cyan-500" /> Menu Items
+                                <LinkIcon className="w-4 h-4 text-cyan-500" /> Menu Items (with Dropdowns)
                             </h4>
                             <button
-                                onClick={addMenuItem}
+                                onClick={addTopLevelItem}
                                 className="flex items-center gap-1 px-3 py-1.5 bg-cyan-500 text-white text-sm rounded-lg hover:bg-cyan-600"
                             >
-                                <Plus className="w-4 h-4" /> Add
+                                <Plus className="w-4 h-4" /> Add Menu Item
                             </button>
                         </div>
 
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+                            Click the + button on any item to add a dropdown sub-item. Sub-items can also have their own dropdowns.
+                        </p>
+
                         <div className="space-y-2">
                             {config.menu_items.map((item, index) => (
-                                <div key={item.id} className="flex items-center gap-2 p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
-                                    <div className="flex flex-col gap-0.5">
-                                        <button
-                                            onClick={() => moveMenuItem(item.id, 'up')}
-                                            disabled={index === 0}
-                                            className="p-0.5 hover:bg-slate-200 dark:hover:bg-slate-600 rounded disabled:opacity-30"
-                                        >
-                                            <ChevronUp className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => moveMenuItem(item.id, 'down')}
-                                            disabled={index === config.menu_items.length - 1}
-                                            className="p-0.5 hover:bg-slate-200 dark:hover:bg-slate-600 rounded disabled:opacity-30"
-                                        >
-                                            <ChevronDown className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                    <input
-                                        type="text"
-                                        value={item.label}
-                                        onChange={(e) => updateMenuItem(item.id, 'label', e.target.value)}
-                                        placeholder="Label (EN)"
-                                        className="flex-1 px-3 py-1.5 border rounded-lg text-sm dark:bg-slate-600 dark:border-slate-500 dark:text-white"
-                                    />
-                                    <input
-                                        type="text"
-                                        value={item.labelAr}
-                                        onChange={(e) => updateMenuItem(item.id, 'labelAr', e.target.value)}
-                                        placeholder="Label (AR)"
-                                        className="flex-1 px-3 py-1.5 border rounded-lg text-sm dark:bg-slate-600 dark:border-slate-500 dark:text-white text-right"
-                                        dir="rtl"
-                                    />
-                                    <input
-                                        type="text"
-                                        value={item.href}
-                                        onChange={(e) => updateMenuItem(item.id, 'href', e.target.value)}
-                                        placeholder="URL"
-                                        className="w-32 px-3 py-1.5 border rounded-lg text-sm dark:bg-slate-600 dark:border-slate-500 dark:text-white"
-                                    />
-                                    <button
-                                        onClick={() => deleteMenuItem(item.id)}
-                                        className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
-                                </div>
+                                <MenuItemEditor
+                                    key={item.id}
+                                    item={item}
+                                    index={index}
+                                    totalItems={config.menu_items.length}
+                                    depth={0}
+                                    onUpdate={handleUpdate}
+                                    onDelete={handleDelete}
+                                    onMove={handleMove}
+                                    onAddChild={handleAddChild}
+                                />
                             ))}
                         </div>
                     </div>
