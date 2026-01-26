@@ -3,6 +3,7 @@ import { Lock, LogOut, Package, Users, LayoutGrid, Home, Loader2, ChevronLeft, C
 import { supabase } from '../supabase';
 import { Translations, Language } from '../types';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { AdminSettings } from './admin/AdminSettings';
 
 interface AdminPanelProps {
   t: Translations;
@@ -320,7 +321,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ t, lang }) => {
 
           {/* Content Area */}
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-            <Outlet />
+            {location.pathname.includes('settings') ? (
+              <AdminSettings t={t} />
+            ) : (
+              <Outlet />
+            )}
           </div>
         </div>
       </main>
