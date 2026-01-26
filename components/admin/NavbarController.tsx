@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../utils/supabase';
 import {
     Save, Plus, Trash2, ChevronUp, ChevronDown, ChevronRight,
-    Loader2, Check, AlertCircle, Image, Type, Link as LinkIcon
+    Loader2, Check, AlertCircle, Image, Type, Link as LinkIcon,
+    X, Upload
 } from 'lucide-react';
 
 interface MenuItem {
@@ -110,22 +111,99 @@ const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
                     className="w-28 px-2 py-1 border rounded text-sm dark:bg-slate-600 dark:border-slate-500 dark:text-white"
                 />
 
-                {/* Icon - Moved here */}
-                <div className="relative group/icon">
-                    <input
-                        type="text"
-                        value={item.icon || ''}
-                        onChange={(e) => onUpdate(item.id, 'icon', e.target.value)}
-                        placeholder="Icon"
-                        className="w-24 flex-shrink-0 px-2 py-1 border rounded text-sm dark:bg-slate-600 dark:border-slate-500 dark:text-white"
-                        title="Paste image URL here"
-                    />
-                    {item.icon && (
-                        <div className="absolute top-full right-0 mt-1 hidden group-hover/icon:block z-50 p-1 bg-white shadow-lg rounded border">
-                            <img src={item.icon} alt="preview" className="w-8 h-8 object-contain" />
+                {/* Icon Controller */}
+                <div className="relative group/icon-wrapper">
+                    <button
+                        className="w-8 h-8 flex items-center justify-center rounded border border-slate-300 dark:border-slate-500 hover:border-cyan-500 bg-slate-50 dark:bg-slate-700 transition-colors"
+                        onClick={() => {
+                            const popover = document.getElementById(`icon-popover-${item.id}`);
+                            if (popover) popover.classList.toggle('hidden');
+                        }}
+                        title="Change Icon"
+                    >
+                        {item.icon ? (
+                            <img src={item.icon} alt="icon" className="w-5 h-5 object-contain" />
+                        ) : (
+                            <Image className="w-4 h-4 text-slate-400" />
+                        )}
+                    </button>
+
+                    {/* Popover */}
+                    <div
+                        id={`icon-popover-${item.id}`}
+                        className="hidden absolute top-full left-0 mt-2 w-64 p-3 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 z-50 animate-fadeIn"
+                    >
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Icon Source</span>
+                            <button
+                                onClick={() => document.getElementById(`icon-popover-${item.id}`)?.classList.add('hidden')}
+                                className="text-slate-400 hover:text-red-500"
+                            >
+                                <X className="w-3 h-3" />
+                            </button>
                         </div>
-                    )}
+
+                        <div className="space-y-3">
+                            {/* Option 1: URL */}
+                            <div>
+                                <label className="block text-[10px] uppercase text-slate-500 mb-1">Image Link (URL)</label>
+                                <div className="flex gap-1">
+                                    <input
+                                        type="text"
+                                        value={item.icon || ''}
+                                        onChange={(e) => onUpdate(item.id, 'icon', e.target.value)}
+                                        placeholder="https://..."
+                                        className="flex-1 px-2 py-1 text-xs border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="relative flex py-1 items-center">
+                                <div className="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
+                                <span className="flex-shrink-0 mx-2 text-[10px] text-slate-400">OR</span>
+                                <div className="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
+                            </div>
+
+                            {/* Option 2: Upload */}
+                            <div>
+                                <label className="block text-[10px] uppercase text-slate-500 mb-1">Upload File</label>
+                                <label className="flex items-center justify-center w-full px-2 py-2 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg hover:border-cyan-500 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors group">
+                                    <div className="text-center">
+                                        <Upload className="w-4 h-4 mx-auto text-slate-400 group-hover:text-cyan-500 mb-1" />
+                                        <span className="text-[10px] text-slate-500">Click to upload (PNG/SVG)</span>
+                                    </div>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                                const reader = new FileReader();
+                                                reader.onloadend = () => {
+                                                    onUpdate(item.id, 'icon', reader.result);
+                                                };
+                                                reader.readAsDataURL(file);
+                                            }
+                                        }}
+                                    />
+                                </label>
+                            </div>
+
+                            {item.icon && (
+                                <button
+                                    onClick={() => onUpdate(item.id, 'icon', '')}
+                                    className="w-full mt-1 py-1 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                                >
+                                    Remove Icon
+                                </button>
+                            )}
+                        </div>
+                    </div>
                 </div>
+
+                {/* Backdrpop for closing */}
+                {/* Simplified: Using X button to close logic above for now to keep local state clean without huge refactor */}
 
                 {/* Add Sub-item */}
                 <button
