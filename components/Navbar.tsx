@@ -223,8 +223,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm transition-colors duration-300">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+    <nav className="fixed top-0 left-0 w-full z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
+      <div className="w-full px-6 lg:px-8 h-20 flex items-center justify-between mx-auto max-w-[1920px]">
 
         {/* Logo */}
         <div
@@ -245,24 +245,24 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-1 rtl:space-x-reverse bg-slate-100/50 dark:bg-slate-800/50 backdrop-blur-sm px-1.5 py-1.5 rounded-full border border-slate-200/50 dark:border-slate-700/50 shadow-sm">
+        <div className="hidden md:flex items-center space-x-1 rtl:space-x-reverse h-full">
           {menuItems.sort((a, b) => a.order - b.order).map(item => (
             <div
               key={item.id}
-              className="relative h-16 flex items-center"
+              className="relative h-full flex items-center"
               onMouseEnter={() => item.children?.length ? setOpenDropdown(item.id) : null}
               onMouseLeave={() => setOpenDropdown(null)}
             >
               <button
                 onClick={() => handleNavigation(item.href)}
-                className={`relative px-5 py-2.5 rounded-full text-[15px] font-bold transition-all duration-300 flex items-center gap-1.5 ${isActive(item.href)
-                  ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/30'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-cyan-600 dark:hover:text-cyan-400 hover:bg-white/80 dark:hover:bg-slate-700/50'
+                className={`flex items-center gap-1.5 px-4 h-10 rounded-lg text-[15px] font-medium transition-all duration-200 ${isActive(item.href)
+                  ? 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-400'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
               >
                 {lang === 'en' ? item.label : item.labelAr}
                 {item.children && item.children.length > 0 && (
-                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${openDropdown === item.id ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${openDropdown === item.id ? 'rotate-180' : ''}`} />
                 )}
               </button>
 
