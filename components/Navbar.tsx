@@ -1,7 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Lock, Moon, Sun, Globe, Search, Menu, X, FlaskConical } from 'lucide-react';
 import { Language, Translations } from '../types';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { supabase } from '../utils/supabase';
+
+interface NavbarConfig {
+  logo_url: string;
+  site_name: string;
+  site_name_ar: string;
+  menu_items: { id: string; label: string; labelAr: string; href: string; order: number }[];
+}
 
 interface NavbarProps {
   isDarkMode: boolean;
@@ -22,9 +30,30 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [config, setConfig] = useState<NavbarConfig | null>(null);
 
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Fetch navbar config from database
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('navbar_config')
+          .select('*')
+          .eq('id', 'main')
+          .single();
+
+        if (!error && data) {
+          setConfig(data);
+        }
+      } catch (e) {
+        console.log('Using default navbar config');
+      }
+    };
+    fetchConfig();
+  }, []);
 
   // Handle search on Enter key
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -41,12 +70,30 @@ export const Navbar: React.FC<NavbarProps> = ({
     }
   };
 
-  const navLinks = [
-    { path: '/', label: t.navHome, id: 'hero' },
-    { path: '/catalog', label: t.navProducts, id: null },
-    { path: '/', label: t.navPartners, id: 'partners' },
-    { path: '/about', label: t.navAbout, id: null },
+  // Default nav links fallback
+  const defaultNavLinks = [
+    { path: '/', label: t.navHome, labelAr: 'الرئيسية', id: 'hero' },
+    { path: '/catalog', label: t.navProducts, labelAr: 'المنتجات', id: null },
+    { path: '/', label: t.navPartners, labelAr: 'الشركاء', id: 'partners' },
+    { path: '/about', label: t.navAbout, labelAr: 'من نحن', id: null },
   ];
+
+  // Use database config or fallback to defaults
+  const navLinks = config?.menu_items?.length
+    ? config.menu_items.sort((a, b) => a.order - b.order).map(item => ({
+      path: item.href.includes('#') ? item.href.split('#')[0] || '/' : item.href,
+      label: lang === 'en' ? item.label : item.labelAr,
+      id: item.href.includes('#') ? item.href.split('#')[1] : null,
+    }))
+    : defaultNavLinks.map(link => ({
+      ...link,
+      label: lang === 'en' ? link.label : link.labelAr,
+    }));
+
+  // Get site name from config
+  const siteName = config
+    ? (lang === 'en' ? config.site_name : config.site_name_ar)
+    : (lang === 'en' ? 'Alzahrany Trading' : 'الزهراني للتجارة');
 
   const handleNavigation = (path: string, id?: string | null) => {
     setIsMobileMenuOpen(false);
@@ -90,16 +137,16 @@ export const Navbar: React.FC<NavbarProps> = ({
           onClick={() => handleNavigation('/')}
           title={t.tooltipHome}
         >
-          {/* Logo Icon with gradient background */}
-          <div className="bg-gradient-to-br from-cyan-500 to-blue-600 p-2 rounded-xl shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform duration-300">
-            <FlaskConical className="h-6 w-6 text-white" strokeWidth={2.5} />
-          </div>
+          {/* Logo - custom image or default icon */}
+          {config?.logo_url ? (
+            <img src={config.logo_url} alt="Logo" className="h-10 w-10 object-contain group-hover:scale-105 transition-transform duration-300" />
+          ) : (
+            <div className="bg-gradient-to-br from-cyan-500 to-blue-600 p-2 rounded-xl shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform duration-300">
+              <FlaskConical className="h-6 w-6 text-white" strokeWidth={2.5} />
+            </div>
+          )}
           <span className="font-black text-xl tracking-tight hidden sm:block text-slate-800 dark:text-white">
-            {lang === 'en' ? (
-              <span dir="ltr">Alzah<span className="text-cyan-600 dark:text-cyan-400">rany</span> Trading</span>
-            ) : (
-              <span><span className="text-cyan-600 dark:text-cyan-400">الزهراني</span> للتجارة</span>
-            )}
+            {siteName}
           </span>
         </div>
 

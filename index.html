@@ -1,105 +1,119 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
-    <!-- Primary Meta Tags -->
-    <title>Alzahrany | High-Precision Laboratory Instruments</title>
-    <meta name="title" content="Alzahrany | High-Precision Laboratory Instruments" />
-    <meta name="description" content="Discover Alzahrany's portfolio of high-precision chemical laboratory instruments, borosilicate glassware, digital microscopes, and centrifuges. Trusted by researchers." />
-    <meta name="keywords" content="laboratory equipment, chemical lab supplies, scientific instruments, microscopes, centrifuges, lab glassware, chemistry lab, science portfolio, Alzahrany, research tools" />
-    <meta name="author" content="Alzahrany" />
-    <meta name="robots" content="index, follow" />
 
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="Alzahrany | High-Precision Laboratory Instruments" />
-    <meta property="og:description" content="Discover Alzahrany's portfolio of high-precision chemical laboratory instruments, borosilicate glassware, digital microscopes, and centrifuges." />
-    
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:title" content="Alzahrany | High-Precision Laboratory Instruments" />
-    <meta property="twitter:description" content="Discover Alzahrany's portfolio of high-precision chemical laboratory instruments, borosilicate glassware, digital microscopes, and centrifuges." />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ['Inter', 'Cairo', 'sans-serif'],
+  <!-- Primary Meta Tags -->
+  <title>Alzahrany | High-Precision Laboratory Instruments</title>
+  <meta name="title" content="Alzahrany Trading | High-Precision Laboratory Instruments" />
+  <meta name="description"
+    content="Discover Alzahrany's portfolio of high-precision chemical laboratory instruments, borosilicate glassware, digital microscopes, and centrifuges. Trusted by researchers." />
+  <meta name="keywords"
+    content="laboratory equipment, chemical lab supplies, scientific instruments, microscopes, centrifuges, lab glassware, chemistry lab, science portfolio, Alzahrany, research tools" />
+  <meta name="author" content="Alzahrany" />
+  <meta name="robots" content="index, follow" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Alzahrany | High-Precision Laboratory Instruments" />
+  <meta property="og:description"
+    content="Discover Alzahrany's portfolio of high-precision chemical laboratory instruments, borosilicate glassware, digital microscopes, and centrifuges." />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:title" content="Alzahrany | High-Precision Laboratory Instruments" />
+  <meta property="twitter:description"
+    content="Discover Alzahrany's portfolio of high-precision chemical laboratory instruments, borosilicate glassware, digital microscopes, and centrifuges." />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Cairo', 'sans-serif'],
+          },
+          colors: {
+            slate: {
+              850: '#151f32',
+              950: '#020617',
             },
-            colors: {
-              slate: {
-                850: '#151f32',
-                950: '#020617',
-              },
-              cyan: {
-                450: '#00ccff', // Neon cyan
-              }
+            cyan: {
+              450: '#00ccff', // Neon cyan
+            }
+          },
+          animation: {
+            'float': 'float 8s ease-in-out infinite',
+            'float-delayed': 'float 8s ease-in-out 4s infinite',
+            'float-fast': 'float 6s ease-in-out 2s infinite',
+            'pulse-glow': 'pulseGlow 3s ease-in-out infinite',
+            'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
+            'spin-slow': 'spin 12s linear infinite',
+            'pop-in': 'popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-20px)' },
             },
-            animation: {
-              'float': 'float 8s ease-in-out infinite',
-              'float-delayed': 'float 8s ease-in-out 4s infinite',
-              'float-fast': 'float 6s ease-in-out 2s infinite',
-              'pulse-glow': 'pulseGlow 3s ease-in-out infinite',
-              'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
-              'spin-slow': 'spin 12s linear infinite',
-              'pop-in': 'popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+            pulseGlow: {
+              '0%, 100%': { opacity: '0.6', transform: 'scale(1)' },
+              '50%': { opacity: '1', transform: 'scale(1.05)' },
             },
-            keyframes: {
-              float: {
-                '0%, 100%': { transform: 'translateY(0)' },
-                '50%': { transform: 'translateY(-20px)' },
-              },
-              pulseGlow: {
-                '0%, 100%': { opacity: '0.6', transform: 'scale(1)' },
-                '50%': { opacity: '1', transform: 'scale(1.05)' },
-              },
-              fadeInUp: {
-                '0%': { opacity: '0', transform: 'translateY(20px)' },
-                '100%': { opacity: '1', transform: 'translateY(0)' },
-              },
-              popIn: {
-                '0%': { opacity: '0', transform: 'scale(0.5)' },
-                '100%': { opacity: '1', transform: 'scale(1)' },
-              },
-              shimmer: {
-                '100%': { transform: 'translateX(100%)' },
-              }
+            fadeInUp: {
+              '0%': { opacity: '0', transform: 'translateY(20px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            },
+            popIn: {
+              '0%': { opacity: '0', transform: 'scale(0.5)' },
+              '100%': { opacity: '1', transform: 'scale(1)' },
+            },
+            shimmer: {
+              '100%': { transform: 'translateX(100%)' },
             }
           }
         }
       }
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-      body {
-        /* Inter for English, Cairo for Arabic fallback */
-        font-family: 'Inter', 'Cairo', sans-serif;
-      }
-      /* Custom Scrollbar */
-      ::-webkit-scrollbar {
-        width: 8px;
-      }
-      ::-webkit-scrollbar-track {
-        background: #0f172a;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #334155;
-        border-radius: 4px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #06b6d4;
-      }
-    </style>
+    }
+  </script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cairo:wght@400;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    body {
+      /* Inter for English, Cairo for Arabic fallback */
+      font-family: 'Inter', 'Cairo', sans-serif;
+    }
 
-<link rel="stylesheet" href="/index.css">
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #06b6d4;
+    }
+  </style>
+
+  <link rel="stylesheet" href="/index.css">
 </head>
-  <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased transition-colors duration-500">
-    <div id="root"></div>
+
+<body
+  class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased transition-colors duration-500">
+  <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
 </body>
+
 </html>
