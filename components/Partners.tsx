@@ -39,7 +39,7 @@ export const Partners: React.FC<PartnersProps> = ({ partners, title, content, la
           {displayPartners.map((partner, index) => (
             <div
               key={`${partner.id}-${index}`}
-              className="flex-shrink-0 mx-8 md:mx-16 flex items-center justify-center transition-all duration-300 hover:scale-105 cursor-pointer"
+              className="flex-shrink-0 mx-8 md:mx-16 flex items-center justify-center transition-all duration-300 hover:scale-125 cursor-pointer"
             >
               <div className="h-16 w-32 md:h-20 md:w-40 flex items-center justify-center">
                 {partner.logo ? (
@@ -64,7 +64,7 @@ export const Partners: React.FC<PartnersProps> = ({ partners, title, content, la
           100% { transform: translateX(-50%); }
         }
         .animate-scroll {
-          animation: scroll 30s linear infinite;
+          animation: scroll 20s linear infinite;
         }
         .pause-animation {
           animation-play-state: paused;
