@@ -51,6 +51,7 @@ const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
     item, index, totalItems, depth, onUpdate, onDelete, onMove, onAddChild
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
+    const [showIconPopover, setShowIconPopover] = useState(false);
     const hasChildren = item.children && item.children.length > 0;
 
     return (
@@ -128,78 +129,97 @@ const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
                         )}
                     </button>
 
-                    {/* Popover */}
-                    <div
-                        id={`icon-popover-${item.id}`}
-                        className="hidden absolute top-full right-0 mt-2 w-72 p-4 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 z-[100] animate-fadeIn"
-                    >
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Icon Source</span>
-                            <button
-                                onClick={() => document.getElementById(`icon-popover-${item.id}`)?.classList.add('hidden')}
-                                className="text-slate-400 hover:text-red-500"
+                    {/* Modal for Icon Selection */}
+                    {showIconPopover && (
+                        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
+                            <div
+                                className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-sm p-5 transform transition-all scale-100"
+                                onClick={(e) => e.stopPropagation()}
                             >
-                                <X className="w-3 h-3" />
-                            </button>
-                        </div>
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                        <Image className="w-4 h-4 text-cyan-500" />
+                                        Select Icon
+                                    </h3>
+                                    <button
+                                        onClick={() => setShowIconPopover(false)}
+                                        className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-red-500 transition-colors"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
 
-                        <div className="space-y-3">
-                            {/* Option 1: URL */}
-                            <div>
-                                <label className="block text-[10px] uppercase text-slate-500 mb-1">Image Link (URL)</label>
-                                <div className="flex gap-1">
-                                    <input
-                                        type="text"
-                                        value={item.icon || ''}
-                                        onChange={(e) => onUpdate(item.id, 'icon', e.target.value)}
-                                        placeholder="https://..."
-                                        className="flex-1 px-2 py-1 text-xs border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white"
-                                    />
+                                <div className="space-y-4">
+                                    {/* Option 1: URL */}
+                                    <div>
+                                        <label className="block text-xs font-semibold uppercase text-slate-500 mb-1.5">Image Link (URL)</label>
+                                        <input
+                                            type="text"
+                                            value={item.icon || ''}
+                                            onChange={(e) => onUpdate(item.id, 'icon', e.target.value)}
+                                            placeholder="https://example.com/icon.png"
+                                            className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 outline-none"
+                                        />
+                                    </div>
+
+                                    <div className="relative flex py-1 items-center">
+                                        <div className="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
+                                        <span className="flex-shrink-0 mx-2 text-xs text-slate-400">OR UPLOAD</span>
+                                        <div className="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
+                                    </div>
+
+                                    {/* Option 2: Upload */}
+                                    <div>
+                                        <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl hover:border-cyan-500 hover:bg-cyan-50 dark:hover:bg-cyan-900/10 cursor-pointer transition-all group">
+                                            <div className="text-center p-4">
+                                                <Upload className="w-8 h-8 mx-auto text-slate-400 group-hover:text-cyan-500 mb-2 transition-colors" />
+                                                <p className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                                                    Click to upload PNG or SVG
+                                                </p>
+                                                <p className="text-[10px] text-slate-400 mt-1">Max size 1MB</p>
+                                            </div>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                        const reader = new FileReader();
+                                                        reader.onloadend = () => {
+                                                            onUpdate(item.id, 'icon', reader.result);
+                                                        };
+                                                        reader.readAsDataURL(file);
+                                                    }
+                                                }}
+                                            />
+                                        </label>
+                                    </div>
+
+                                    {item.icon && (
+                                        <div className="pt-2 border-t border-slate-100 dark:border-slate-700">
+                                            <button
+                                                onClick={() => {
+                                                    onUpdate(item.id, 'icon', '');
+                                                    setShowIconPopover(false);
+                                                }}
+                                                className="w-full py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors font-medium flex items-center justify-center gap-2"
+                                            >
+                                                <Trash2 className="w-4 h-4" /> Remove Icon
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    <button
+                                        onClick={() => setShowIconPopover(false)}
+                                        className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-medium transition-colors shadow-lg shadow-cyan-500/20"
+                                    >
+                                        Done
+                                    </button>
                                 </div>
                             </div>
-
-                            <div className="relative flex py-1 items-center">
-                                <div className="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
-                                <span className="flex-shrink-0 mx-2 text-[10px] text-slate-400">OR</span>
-                                <div className="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
-                            </div>
-
-                            {/* Option 2: Upload */}
-                            <div>
-                                <label className="block text-[10px] uppercase text-slate-500 mb-1">Upload File</label>
-                                <label className="flex items-center justify-center w-full px-2 py-2 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg hover:border-cyan-500 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors group">
-                                    <div className="text-center">
-                                        <Upload className="w-4 h-4 mx-auto text-slate-400 group-hover:text-cyan-500 mb-1" />
-                                        <span className="text-[10px] text-slate-500">Click to upload (PNG/SVG)</span>
-                                    </div>
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        className="hidden"
-                                        onChange={(e) => {
-                                            const file = e.target.files?.[0];
-                                            if (file) {
-                                                const reader = new FileReader();
-                                                reader.onloadend = () => {
-                                                    onUpdate(item.id, 'icon', reader.result);
-                                                };
-                                                reader.readAsDataURL(file);
-                                            }
-                                        }}
-                                    />
-                                </label>
-                            </div>
-
-                            {item.icon && (
-                                <button
-                                    onClick={() => onUpdate(item.id, 'icon', '')}
-                                    className="w-full mt-1 py-1 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
-                                >
-                                    Remove Icon
-                                </button>
-                            )}
                         </div>
-                    </div>
+                    )}
                 </div>
 
                 {/* Backdrpop for closing */}
