@@ -245,25 +245,29 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-2 rtl:space-x-reverse">
+        <div className="hidden md:flex items-center space-x-1 rtl:space-x-reverse">
           {menuItems.sort((a, b) => a.order - b.order).map(item => (
             <div
               key={item.id}
-              className="relative"
+              className="relative h-16 flex items-center"
               onMouseEnter={() => item.children?.length ? setOpenDropdown(item.id) : null}
               onMouseLeave={() => setOpenDropdown(null)}
             >
               <button
                 onClick={() => handleNavigation(item.href)}
-                className={`px-3 py-2 rounded-lg text-[15px] font-medium transition-all duration-200 flex items-center gap-1.5 ${isActive(item.href)
-                  ? 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
+                className={`relative px-4 py-2 text-[15px] font-medium transition-colors duration-300 flex items-center gap-1 group ${isActive(item.href)
+                  ? 'text-cyan-600 dark:text-cyan-400'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400'
                   }`}
               >
                 {lang === 'en' ? item.label : item.labelAr}
                 {item.children && item.children.length > 0 && (
-                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${openDropdown === item.id ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${openDropdown === item.id ? 'rotate-180' : 'group-hover:translate-y-0.5'}`} />
                 )}
+
+                {/* Animated Underline */}
+                <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-cyan-600 dark:bg-cyan-400 transition-all duration-300 origin-left ${isActive(item.href) ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
+                  }`} />
               </button>
 
               {/* Desktop Dropdown */}
