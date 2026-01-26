@@ -45,13 +45,13 @@ interface MenuItemEditorProps {
     onDelete: (id: string) => void;
     onMove: (id: string, direction: 'up' | 'down') => void;
     onAddChild: (parentId: string) => void;
+    onEditIcon: (id: string, icon: string) => void;
 }
 
 const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
-    item, index, totalItems, depth, onUpdate, onDelete, onMove, onAddChild
+    item, index, totalItems, depth, onUpdate, onDelete, onMove, onAddChild, onEditIcon
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
-    const [showIconPopover, setShowIconPopover] = useState(false);
     const hasChildren = item.children && item.children.length > 0;
 
     return (
@@ -116,10 +116,7 @@ const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
                 <div className="relative group/icon-wrapper">
                     <button
                         className="w-8 h-8 flex items-center justify-center rounded border border-slate-300 dark:border-slate-500 hover:border-cyan-500 bg-slate-50 dark:bg-slate-700 transition-colors"
-                        onClick={() => {
-                            const popover = document.getElementById(`icon-popover-${item.id}`);
-                            if (popover) popover.classList.toggle('hidden');
-                        }}
+                        onClick={() => onEditIcon(item.id, item.icon || '')}
                         title="Change Icon"
                     >
                         {item.icon ? (
@@ -130,96 +127,7 @@ const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
                     </button>
 
                     {/* Modal for Icon Selection */}
-                    {showIconPopover && (
-                        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
-                            <div
-                                className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-sm p-5 transform transition-all scale-100"
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                <div className="flex items-center justify-between mb-4">
-                                    <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                        <Image className="w-4 h-4 text-cyan-500" />
-                                        Select Icon
-                                    </h3>
-                                    <button
-                                        onClick={() => setShowIconPopover(false)}
-                                        className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-red-500 transition-colors"
-                                    >
-                                        <X className="w-4 h-4" />
-                                    </button>
-                                </div>
 
-                                <div className="space-y-4">
-                                    {/* Option 1: URL */}
-                                    <div>
-                                        <label className="block text-xs font-semibold uppercase text-slate-500 mb-1.5">Image Link (URL)</label>
-                                        <input
-                                            type="text"
-                                            value={item.icon || ''}
-                                            onChange={(e) => onUpdate(item.id, 'icon', e.target.value)}
-                                            placeholder="https://example.com/icon.png"
-                                            className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 outline-none"
-                                        />
-                                    </div>
-
-                                    <div className="relative flex py-1 items-center">
-                                        <div className="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
-                                        <span className="flex-shrink-0 mx-2 text-xs text-slate-400">OR UPLOAD</span>
-                                        <div className="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
-                                    </div>
-
-                                    {/* Option 2: Upload */}
-                                    <div>
-                                        <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl hover:border-cyan-500 hover:bg-cyan-50 dark:hover:bg-cyan-900/10 cursor-pointer transition-all group">
-                                            <div className="text-center p-4">
-                                                <Upload className="w-8 h-8 mx-auto text-slate-400 group-hover:text-cyan-500 mb-2 transition-colors" />
-                                                <p className="text-xs font-medium text-slate-600 dark:text-slate-400">
-                                                    Click to upload PNG or SVG
-                                                </p>
-                                                <p className="text-[10px] text-slate-400 mt-1">Max size 1MB</p>
-                                            </div>
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                className="hidden"
-                                                onChange={(e) => {
-                                                    const file = e.target.files?.[0];
-                                                    if (file) {
-                                                        const reader = new FileReader();
-                                                        reader.onloadend = () => {
-                                                            onUpdate(item.id, 'icon', reader.result);
-                                                        };
-                                                        reader.readAsDataURL(file);
-                                                    }
-                                                }}
-                                            />
-                                        </label>
-                                    </div>
-
-                                    {item.icon && (
-                                        <div className="pt-2 border-t border-slate-100 dark:border-slate-700">
-                                            <button
-                                                onClick={() => {
-                                                    onUpdate(item.id, 'icon', '');
-                                                    setShowIconPopover(false);
-                                                }}
-                                                className="w-full py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors font-medium flex items-center justify-center gap-2"
-                                            >
-                                                <Trash2 className="w-4 h-4" /> Remove Icon
-                                            </button>
-                                        </div>
-                                    )}
-
-                                    <button
-                                        onClick={() => setShowIconPopover(false)}
-                                        className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-medium transition-colors shadow-lg shadow-cyan-500/20"
-                                    >
-                                        Done
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
                 </div>
 
                 {/* Backdrpop for closing */}
@@ -260,6 +168,7 @@ const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
                             onDelete={onDelete}
                             onMove={onMove}
                             onAddChild={onAddChild}
+                            onEditIcon={onEditIcon}
                         />
                     ))}
                 </div>
@@ -277,6 +186,7 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState('');
+    const [editingIcon, setEditingIcon] = useState<{ id: string, icon: string } | null>(null);
     const [isExpanded, setIsExpanded] = useState(false);
 
     useEffect(() => {
@@ -423,6 +333,16 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
         }));
     };
 
+    const handleEditIcon = (id: string, icon: string) => {
+        setEditingIcon({ id, icon });
+    };
+
+    const updateIconValue = (val: string) => {
+        if (!editingIcon) return;
+        setEditingIcon(prev => ({ ...prev!, icon: val }));
+        handleUpdate(editingIcon.id, 'icon', val);
+    };
+
     const addTopLevelItem = () => {
         const newItem: MenuItem = {
             id: Date.now().toString(),
@@ -520,6 +440,7 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
                             onDelete={handleDelete}
                             onMove={handleMove}
                             onAddChild={handleAddChild}
+                            onEditIcon={handleEditIcon}
                         />
                     ))}
                 </div>
@@ -543,6 +464,97 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
                     </span>
                 )}
             </div>
+
+            {/* Top Level Icon Modal */}
+            {editingIcon && (
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
+                    <div
+                        className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-sm p-5 transform transition-all scale-100"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                <Image className="w-4 h-4 text-cyan-500" />
+                                Select Icon
+                            </h3>
+                            <button
+                                onClick={() => setEditingIcon(null)}
+                                className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-red-500 transition-colors"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            {/* Option 1: URL */}
+                            <div>
+                                <label className="block text-xs font-semibold uppercase text-slate-500 mb-1.5">Image Link (URL)</label>
+                                <input
+                                    type="text"
+                                    value={editingIcon.icon || ''}
+                                    onChange={(e) => updateIconValue(e.target.value)}
+                                    placeholder="https://example.com/icon.png"
+                                    className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 outline-none"
+                                />
+                            </div>
+
+                            <div className="relative flex py-1 items-center">
+                                <div className="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
+                                <span className="flex-shrink-0 mx-2 text-xs text-slate-400">OR UPLOAD</span>
+                                <div className="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
+                            </div>
+
+                            {/* Option 2: Upload */}
+                            <div>
+                                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl hover:border-cyan-500 hover:bg-cyan-50 dark:hover:bg-cyan-900/10 cursor-pointer transition-all group">
+                                    <div className="text-center p-4">
+                                        <Upload className="w-8 h-8 mx-auto text-slate-400 group-hover:text-cyan-500 mb-2 transition-colors" />
+                                        <p className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                                            Click to upload PNG or SVG
+                                        </p>
+                                        <p className="text-[10px] text-slate-400 mt-1">Max size 1MB</p>
+                                    </div>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                                const reader = new FileReader();
+                                                reader.onloadend = () => {
+                                                    updateIconValue(reader.result as string);
+                                                };
+                                                reader.readAsDataURL(file);
+                                            }
+                                        }}
+                                    />
+                                </label>
+                            </div>
+
+                            {editingIcon.icon && (
+                                <div className="pt-2 border-t border-slate-100 dark:border-slate-700">
+                                    <button
+                                        onClick={() => {
+                                            updateIconValue('');
+                                        }}
+                                        className="w-full py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors font-medium flex items-center justify-center gap-2"
+                                    >
+                                        <Trash2 className="w-4 h-4" /> Remove Icon
+                                    </button>
+                                </div>
+                            )}
+
+                            <button
+                                onClick={() => setEditingIcon(null)}
+                                className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-medium transition-colors shadow-lg shadow-cyan-500/20"
+                            >
+                                Done
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
