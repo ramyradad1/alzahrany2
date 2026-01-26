@@ -246,10 +246,24 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const isActive = (href: string) => {
     if (location.pathname === '/admin') return false;
+    // Don't highlight placeholders or empty links
+    if (href === '#' || href === '') return false;
+
+    // For hash links (e.g. /#partners), only highlight if we're technically just on that section? 
+    // Actually, for a cleaner look, let's only highlight the EXACT current path match, 
+    // or strictly avoid highlighting hash links if they just point to current page to avoid clutter.
+    // BUT, the user might want "Partners" highlighted if they clicked it. 
+    // Let's assume for now we only want to highlight if it's a REAL page navigation, not just a scroll anchor on Home.
+    // So 'Home' (/) gets highlighted. 'Partners' (/#partners) does NOT, unless we are strictly tracking scroll.
+    // Given the clutter, it's safer to only highlight non-hash links, OR ensure hash links don't match base path blindly.
+
+    if (href === '/') return location.pathname === '/';
+
     if (href.includes('#')) {
-      const [path] = href.split('#');
-      return location.pathname === (path || '/');
+      // If it's a hash link, generally don't treat it as "Active Page" to avoid "Home" + "Partners" + "Sections" all being active.
+      return false;
     }
+
     return location.pathname === href;
   };
 
