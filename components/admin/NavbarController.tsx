@@ -11,6 +11,7 @@ interface MenuItem {
     labelAr: string;
     href: string;
     order: number;
+    icon?: string;
     children?: MenuItem[];
 }
 
@@ -99,6 +100,22 @@ const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
                     className="w-24 px-2 py-1 border rounded text-sm dark:bg-slate-600 dark:border-slate-500 dark:text-white text-right"
                     dir="rtl"
                 />
+
+                {/* Icon */}
+                <div className="relative group/icon">
+                    <input
+                        type="text"
+                        value={item.icon || ''}
+                        onChange={(e) => onUpdate(item.id, 'icon', e.target.value)}
+                        placeholder="Icon URL"
+                        className="w-20 px-2 py-1 border rounded text-sm dark:bg-slate-600 dark:border-slate-500 dark:text-white"
+                    />
+                    {item.icon && (
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 hidden group-hover/icon:block z-50 p-1 bg-white shadow-lg rounded border">
+                            <img src={item.icon} alt="preview" className="w-8 h-8 object-contain" />
+                        </div>
+                    )}
+                </div>
 
                 {/* URL */}
                 <input

@@ -10,6 +10,7 @@ interface MenuItem {
   labelAr: string;
   href: string;
   order: number;
+  icon?: string;
   children?: MenuItem[];
 }
 
@@ -55,7 +56,10 @@ const DesktopDropdown: React.FC<{
               onClick={() => onNavigate(item.href)}
               className="w-full px-4 py-2.5 text-left flex items-center justify-between text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors"
             >
-              <span>{lang === 'en' ? item.label : item.labelAr}</span>
+              <span className="flex items-center gap-2">
+                {item.icon && <img src={item.icon} alt="" className="w-5 h-5 object-contain" />}
+                {lang === 'en' ? item.label : item.labelAr}
+              </span>
               {item.children && item.children.length > 0 && (
                 <ChevronRight className="w-4 h-4 text-slate-400" />
               )}
@@ -112,7 +116,11 @@ const MobileAccordion: React.FC<{
                 onClick={() => onNavigate(item.href)}
                 className="flex-1 text-left px-4 py-3 font-medium flex items-center gap-3"
               >
-                <div className={`w-1.5 h-1.5 rounded-full transition-colors ${active ? 'bg-cyan-500' : 'bg-slate-300 dark:bg-slate-600'}`} />
+                {item.icon ? (
+                  <img src={item.icon} alt="" className="w-5 h-5 object-contain" />
+                ) : (
+                  <div className={`w-1.5 h-1.5 rounded-full transition-colors ${active ? 'bg-cyan-500' : 'bg-slate-300 dark:bg-slate-600'}`} />
+                )}
                 {lang === 'en' ? item.label : item.labelAr}
               </button>
 
