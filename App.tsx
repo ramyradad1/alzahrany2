@@ -14,7 +14,6 @@ import { AdminPanel } from './components/AdminPanel';
 import { AdminProducts } from './components/admin/AdminProducts';
 import { AdminPartners } from './components/admin/AdminPartners';
 import { AdminSections } from './components/admin/AdminSections';
-import { AdminSettings } from './components/admin/AdminSettings';
 import { ProductModal } from './components/ProductModal';
 import { AboutPage } from './components/AboutPage';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -188,7 +187,6 @@ const App = () => {
             <Route path="products" element={<AdminProducts products={products} onAdd={handleAddProduct} onEdit={handleEditProduct} onDelete={handleDeleteProduct} t={t} lang={lang} />} />
             <Route path="partners" element={<AdminPartners partners={partners} onAddPartner={handleAddPartner} onDeletePartner={handleDeletePartner} t={t} />} />
             <Route path="sections" element={<AdminSections sections={sections} onUpdateSections={handleUpdateSections} t={t} />} />
-            <Route path="settings" element={<AdminSettings t={t} />} />
           </Route>
 
           {/* Public Routes */}

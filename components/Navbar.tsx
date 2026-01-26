@@ -1,22 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Lock, Moon, Sun, Globe, Search, Menu, X, FlaskConical } from 'lucide-react';
 import { Language, Translations } from '../types';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { supabase } from '../utils/supabase';
-
-interface MenuItem {
-  id: string;
-  label: string;
-  href: string;
-  order: number;
-}
-
-interface SiteSettings {
-  logo_url: string;
-  site_name: string;
-  site_name_ar: string;
-  menu_items: MenuItem[];
-}
 
 interface NavbarProps {
   isDarkMode: boolean;
@@ -37,31 +22,9 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [settings, setSettings] = useState<SiteSettings | null>(null);
 
   const location = useLocation();
   const navigate = useNavigate();
-
-  // Fetch settings from database
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('site_settings')
-          .select('logo_url, site_name, site_name_ar, menu_items')
-          .eq('id', 'main')
-          .single();
-
-        if (!error && data) {
-          setSettings(data);
-        }
-      } catch (e) {
-        console.log('Using default settings');
-      }
-    };
-
-    fetchSettings();
-  }, []);
 
   // Handle search on Enter key
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -78,40 +41,26 @@ export const Navbar: React.FC<NavbarProps> = ({
     }
   };
 
-  // Default nav links (fallback if no settings)
-  const defaultNavLinks = [
-    { id: '1', label: t.navHome, href: '/', order: 0 },
-    { id: '2', label: t.navProducts, href: '/catalog', order: 1 },
-    { id: '3', label: t.navPartners, href: '/#partners', order: 2 },
-    { id: '4', label: t.navAbout, href: '/about', order: 3 },
+  const navLinks = [
+    { path: '/', label: t.navHome, id: 'hero' },
+    { path: '/catalog', label: t.navProducts, id: null },
+    { path: '/', label: t.navPartners, id: 'partners' },
+    { path: '/about', label: t.navAbout, id: null },
   ];
 
-  // Use settings menu items if available, otherwise use defaults
-  const navLinks = settings?.menu_items?.length
-    ? settings.menu_items.sort((a, b) => a.order - b.order)
-    : defaultNavLinks;
-
-  // Get site name based on language
-  const siteName = lang === 'en'
-    ? (settings?.site_name || 'Alzahrany Trading')
-    : (settings?.site_name_ar || 'الزهراني للتجارة');
-
-  const handleNavigation = (href: string) => {
+  const handleNavigation = (path: string, id?: string | null) => {
     setIsMobileMenuOpen(false);
 
-    // Check if it's a hash link (e.g., /#partners)
-    if (href.includes('#')) {
-      const [path, hash] = href.split('#');
-      const targetPath = path || '/';
-
-      if (location.pathname !== targetPath) {
-        navigate(targetPath);
+    if (id) {
+      if (location.pathname !== '/') {
+        navigate(path);
+        // Wait for navigation then scroll
         setTimeout(() => {
-          const element = document.getElementById(hash);
+          const element = document.getElementById(id);
           element?.scrollIntoView({ behavior: 'smooth' });
         }, 100);
       } else {
-        const element = document.getElementById(hash);
+        const element = document.getElementById(id);
         if (element) {
           const navHeight = 64;
           const elementPosition = element.getBoundingClientRect().top;
@@ -120,18 +69,15 @@ export const Navbar: React.FC<NavbarProps> = ({
         }
       }
     } else {
-      navigate(href);
+      navigate(path);
       window.scrollTo(0, 0);
     }
   };
 
-  const isActive = (href: string) => {
+  const isActive = (path: string, id?: string | null) => {
     if (location.pathname === '/admin') return false;
-    if (href.includes('#')) {
-      const [path] = href.split('#');
-      return location.pathname === (path || '/');
-    }
-    return location.pathname === href;
+    if (id) return location.pathname === path && location.hash === `#${id}`;
+    return location.pathname === path;
   };
 
   return (
@@ -159,11 +105,11 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* 2. Desktop Navigation (Center) */}
         <div className="hidden md:flex items-center space-x-1 rtl:space-x-reverse bg-slate-100/50 dark:bg-slate-800/50 rounded-full px-1 py-1 border border-slate-200/50 dark:border-slate-700/50">
-          {navLinks.map((link) => (
+          {navLinks.map((link, index) => (
             <button
-              key={link.id}
-              onClick={() => handleNavigation(link.href)}
-              className={`px-5 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ${isActive(link.href)
+              key={index}
+              onClick={() => handleNavigation(link.path, link.id)}
+              className={`px-5 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ${isActive(link.path, link.id)
                 ? 'bg-white dark:bg-slate-700 text-cyan-600 dark:text-cyan-400 shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
@@ -255,11 +201,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           )}
           <div className="flex flex-col space-y-1">
-            {navLinks.map((link) => (
+            {navLinks.map((link, index) => (
               <button
-                key={link.id}
-                onClick={() => handleNavigation(link.href)}
-                className={`text-left rtl:text-right px-4 py-2 rounded-lg font-medium ${isActive(link.href)
+                key={index}
+                onClick={() => handleNavigation(link.path, link.id)}
+                className={`text-left rtl:text-right px-4 py-2 rounded-lg font-medium ${isActive(link.path, link.id)
                   ? 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400'
                   : 'text-slate-600 dark:text-slate-300'
                   }`}
