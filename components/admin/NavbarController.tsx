@@ -101,23 +101,6 @@ const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
                     dir="rtl"
                 />
 
-                {/* Icon */}
-                <div className="relative group/icon">
-                    <input
-                        type="text"
-                        value={item.icon || ''}
-                        onChange={(e) => onUpdate(item.id, 'icon', e.target.value)}
-                        placeholder="Icon URL (https://...)"
-                        className="w-32 flex-shrink-0 px-2 py-1 border rounded text-sm dark:bg-slate-600 dark:border-slate-500 dark:text-white"
-                        title="Paste image URL here"
-                    />
-                    {item.icon && (
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 hidden group-hover/icon:block z-50 p-1 bg-white shadow-lg rounded border">
-                            <img src={item.icon} alt="preview" className="w-8 h-8 object-contain" />
-                        </div>
-                    )}
-                </div>
-
                 {/* URL */}
                 <input
                     type="text"
@@ -126,6 +109,23 @@ const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
                     placeholder="URL"
                     className="w-28 px-2 py-1 border rounded text-sm dark:bg-slate-600 dark:border-slate-500 dark:text-white"
                 />
+
+                {/* Icon - Moved here */}
+                <div className="relative group/icon">
+                    <input
+                        type="text"
+                        value={item.icon || ''}
+                        onChange={(e) => onUpdate(item.id, 'icon', e.target.value)}
+                        placeholder="Icon"
+                        className="w-24 flex-shrink-0 px-2 py-1 border rounded text-sm dark:bg-slate-600 dark:border-slate-500 dark:text-white"
+                        title="Paste image URL here"
+                    />
+                    {item.icon && (
+                        <div className="absolute top-full right-0 mt-1 hidden group-hover/icon:block z-50 p-1 bg-white shadow-lg rounded border">
+                            <img src={item.icon} alt="preview" className="w-8 h-8 object-contain" />
+                        </div>
+                    )}
+                </div>
 
                 {/* Add Sub-item */}
                 <button
@@ -400,7 +400,7 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
                     </h4>
                     <button
                         onClick={addTopLevelItem}
-                        className="flex items-center gap-1.5 px-4 py-2 bg-cyan-500 text-white text-sm font-medium rounded-lg hover:bg-cyan-600"
+                        className="flex items-center gap-1.5 px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700"
                     >
                         <Plus className="w-4 h-4" /> Add Menu Item
                     </button>
