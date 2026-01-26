@@ -313,6 +313,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
               >
+                {item.icon && <img src={item.icon} alt="" className="w-4 h-4 object-contain" />}
                 {lang === 'en' ? item.label : item.labelAr}
                 {item.children && item.children.length > 0 && (
                   <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${openDropdown === item.id ? 'rotate-180' : ''}`} />
