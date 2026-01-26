@@ -5,7 +5,6 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSo
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Eye, EyeOff, Edit, ChevronDown, ChevronUp, Plus, Trash2, Loader2, Save } from 'lucide-react';
 import { AdminSectionEditor } from './AdminSectionEditor';
-import { NavbarController } from './NavbarController';
 import { supabase } from '../../supabase';
 
 interface AdminSectionsProps {
@@ -215,10 +214,7 @@ export const AdminSections: React.FC<AdminSectionsProps> = ({ sections, onUpdate
     };
 
     return (
-        <div className="animate-fade-in-up max-w-3xl mx-auto space-y-6">
-            {/* Navbar Controller */}
-            <NavbarController t={t} />
-
+        <div className="animate-fade-in-up max-w-3xl mx-auto">
             {/* Page Sections */}
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-slate-200 dark:border-slate-700 p-6">
                 <div className="flex justify-between items-center mb-6">

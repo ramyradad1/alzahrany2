@@ -320,137 +320,113 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
 
     if (loading) {
         return (
-            <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-2xl border border-cyan-200 dark:border-cyan-800 p-6">
-                <div className="flex items-center justify-center gap-2">
-                    <Loader2 className="w-5 h-5 animate-spin text-cyan-500" />
-                    <span className="text-slate-600 dark:text-slate-400">Loading navbar settings...</span>
-                </div>
+            <div className="p-6 flex items-center justify-center">
+                <Loader2 className="w-6 h-6 animate-spin text-cyan-500" />
+                <span className="ml-2 text-slate-600 dark:text-slate-400">Loading navbar settings...</span>
             </div>
         );
     }
 
     return (
-        <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-2xl border border-cyan-200 dark:border-cyan-800 overflow-hidden">
-            {/* Header */}
-            <button
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="w-full p-6 flex items-center justify-between hover:bg-white/50 dark:hover:bg-slate-800/50 transition-colors"
-            >
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-cyan-500 rounded-lg">
-                        <LinkIcon className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="text-left">
-                        <h3 className="font-bold text-lg text-slate-900 dark:text-white">Navbar Controller</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Customize logo, site name & dropdown menus</p>
-                    </div>
-                </div>
-                <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-            </button>
+        <div className="p-6 space-y-6 animate-fade-in-up">
+            {/* Logo URL */}
+            <div className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700">
+                <h4 className="font-semibold mb-4 flex items-center gap-2 text-slate-900 dark:text-white">
+                    <Image className="w-5 h-5 text-cyan-500" /> Logo URL
+                </h4>
+                <input
+                    type="url"
+                    value={config.logo_url}
+                    onChange={(e) => setConfig({ ...config, logo_url: e.target.value })}
+                    className="w-full px-4 py-2.5 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                    placeholder="https://example.com/logo.png"
+                />
+                {config.logo_url && (
+                    <img src={config.logo_url} alt="Logo Preview" className="mt-4 h-16 object-contain" />
+                )}
+            </div>
 
-            {/* Content */}
-            {isExpanded && (
-                <div className="p-6 pt-0 space-y-6">
-                    {/* Logo URL */}
-                    <div className="bg-white dark:bg-slate-800 rounded-xl p-4">
-                        <h4 className="font-semibold mb-3 flex items-center gap-2 text-slate-900 dark:text-white">
-                            <Image className="w-4 h-4 text-cyan-500" /> Logo URL
-                        </h4>
+            {/* Site Name */}
+            <div className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700">
+                <h4 className="font-semibold mb-4 flex items-center gap-2 text-slate-900 dark:text-white">
+                    <Type className="w-5 h-5 text-cyan-500" /> Site Name
+                </h4>
+                <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium mb-2 text-slate-600 dark:text-slate-400">English</label>
                         <input
-                            type="url"
-                            value={config.logo_url}
-                            onChange={(e) => setConfig({ ...config, logo_url: e.target.value })}
-                            className="w-full px-4 py-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-white"
-                            placeholder="https://example.com/logo.png"
+                            type="text"
+                            value={config.site_name}
+                            onChange={(e) => setConfig({ ...config, site_name: e.target.value })}
+                            className="w-full px-4 py-2.5 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-white"
                         />
-                        {config.logo_url && (
-                            <img src={config.logo_url} alt="Logo Preview" className="mt-3 h-12 object-contain" />
-                        )}
                     </div>
-
-                    {/* Site Name */}
-                    <div className="bg-white dark:bg-slate-800 rounded-xl p-4">
-                        <h4 className="font-semibold mb-3 flex items-center gap-2 text-slate-900 dark:text-white">
-                            <Type className="w-4 h-4 text-cyan-500" /> Site Name
-                        </h4>
-                        <div className="grid md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm mb-1 text-slate-600 dark:text-slate-400">English</label>
-                                <input
-                                    type="text"
-                                    value={config.site_name}
-                                    onChange={(e) => setConfig({ ...config, site_name: e.target.value })}
-                                    className="w-full px-4 py-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-white"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm mb-1 text-slate-600 dark:text-slate-400">Arabic</label>
-                                <input
-                                    type="text"
-                                    value={config.site_name_ar}
-                                    onChange={(e) => setConfig({ ...config, site_name_ar: e.target.value })}
-                                    className="w-full px-4 py-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-white text-right"
-                                    dir="rtl"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Menu Items with Dropdowns */}
-                    <div className="bg-white dark:bg-slate-800 rounded-xl p-4">
-                        <div className="flex items-center justify-between mb-4">
-                            <h4 className="font-semibold flex items-center gap-2 text-slate-900 dark:text-white">
-                                <LinkIcon className="w-4 h-4 text-cyan-500" /> Menu Items (with Dropdowns)
-                            </h4>
-                            <button
-                                onClick={addTopLevelItem}
-                                className="flex items-center gap-1 px-3 py-1.5 bg-cyan-500 text-white text-sm rounded-lg hover:bg-cyan-600"
-                            >
-                                <Plus className="w-4 h-4" /> Add Menu Item
-                            </button>
-                        </div>
-
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
-                            Click the + button on any item to add a dropdown sub-item. Sub-items can also have their own dropdowns.
-                        </p>
-
-                        <div className="space-y-2">
-                            {config.menu_items.map((item, index) => (
-                                <MenuItemEditor
-                                    key={item.id}
-                                    item={item}
-                                    index={index}
-                                    totalItems={config.menu_items.length}
-                                    depth={0}
-                                    onUpdate={handleUpdate}
-                                    onDelete={handleDelete}
-                                    onMove={handleMove}
-                                    onAddChild={handleAddChild}
-                                />
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Save Button */}
-                    <div className="flex items-center gap-4">
-                        <button
-                            onClick={saveConfig}
-                            disabled={saving}
-                            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold rounded-xl hover:from-cyan-400 hover:to-blue-500 disabled:opacity-50"
-                        >
-                            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                            {saving ? 'Saving...' : 'Save Changes'}
-                        </button>
-
-                        {message && (
-                            <span className={`flex items-center gap-1 ${message.includes('Error') ? 'text-red-500' : 'text-green-500'}`}>
-                                {message.includes('Error') ? <AlertCircle className="w-4 h-4" /> : <Check className="w-4 h-4" />}
-                                {message}
-                            </span>
-                        )}
+                    <div>
+                        <label className="block text-sm font-medium mb-2 text-slate-600 dark:text-slate-400">Arabic</label>
+                        <input
+                            type="text"
+                            value={config.site_name_ar}
+                            onChange={(e) => setConfig({ ...config, site_name_ar: e.target.value })}
+                            className="w-full px-4 py-2.5 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-white text-right"
+                            dir="rtl"
+                        />
                     </div>
                 </div>
-            )}
+            </div>
+
+            {/* Menu Items */}
+            <div className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700">
+                <div className="flex items-center justify-between mb-4">
+                    <h4 className="font-semibold flex items-center gap-2 text-slate-900 dark:text-white">
+                        <LinkIcon className="w-5 h-5 text-cyan-500" /> Menu Items (with Dropdowns)
+                    </h4>
+                    <button
+                        onClick={addTopLevelItem}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-cyan-500 text-white text-sm font-medium rounded-lg hover:bg-cyan-600"
+                    >
+                        <Plus className="w-4 h-4" /> Add Menu Item
+                    </button>
+                </div>
+
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 bg-slate-50 dark:bg-slate-700 p-3 rounded-lg">
+                    💡 Click the <strong>+ button</strong> on any item to add a dropdown sub-item. Sub-items can also have their own dropdowns.
+                </p>
+
+                <div className="space-y-2">
+                    {config.menu_items.map((item, index) => (
+                        <MenuItemEditor
+                            key={item.id}
+                            item={item}
+                            index={index}
+                            totalItems={config.menu_items.length}
+                            depth={0}
+                            onUpdate={handleUpdate}
+                            onDelete={handleDelete}
+                            onMove={handleMove}
+                            onAddChild={handleAddChild}
+                        />
+                    ))}
+                </div>
+            </div>
+
+            {/* Save Button */}
+            <div className="flex items-center gap-4 pt-2">
+                <button
+                    onClick={saveConfig}
+                    disabled={saving}
+                    className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold rounded-xl hover:from-cyan-400 hover:to-blue-500 disabled:opacity-50 shadow-lg shadow-cyan-500/25"
+                >
+                    {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                    {saving ? 'Saving...' : 'Save Changes'}
+                </button>
+
+                {message && (
+                    <span className={`flex items-center gap-2 font-medium ${message.includes('Error') ? 'text-red-500' : 'text-green-500'}`}>
+                        {message.includes('Error') ? <AlertCircle className="w-5 h-5" /> : <Check className="w-5 h-5" />}
+                        {message}
+                    </span>
+                )}
+            </div>
         </div>
     );
 };

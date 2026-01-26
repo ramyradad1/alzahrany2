@@ -93,6 +93,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ t, lang }) => {
     { to: '/admin/products', icon: Package, label: t.portfolio },
     { to: '/admin/partners', icon: Users, label: t.managePartners },
     { to: '/admin/sections', icon: LayoutGrid, label: 'Sections' },
+    { to: '/admin/navbar', icon: Settings, label: 'Navbar' },
   ];
 
   // --- LOGIN VIEW ---
@@ -307,11 +308,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ t, lang }) => {
               {location.pathname.includes('products') && t.portfolio}
               {location.pathname.includes('partners') && t.managePartners}
               {location.pathname.includes('sections') && 'Sections'}
+              {location.pathname.includes('navbar') && 'Navbar Controller'}
             </h2>
             <p className="text-slate-500 dark:text-slate-400 mt-1">
               {location.pathname.includes('products') && 'Manage your product catalog'}
               {location.pathname.includes('partners') && 'Manage partner logos and information'}
               {location.pathname.includes('sections') && 'Customize page sections and layouts'}
+              {location.pathname.includes('navbar') && 'Customize logo, site name & dropdown menus'}
             </p>
           </div>
 
