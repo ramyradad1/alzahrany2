@@ -269,7 +269,12 @@ export const Navbar: React.FC<NavbarProps> = ({
           title={t.tooltipHome}
         >
           {config?.logo_url ? (
-            <img src={config.logo_url} alt="Logo" className="h-10 w-10 object-contain group-hover:scale-105 transition-transform duration-300" />
+            <img
+              src={config.logo_url}
+              alt="Logo"
+              style={{ width: config.logo_size || 40, height: 'auto' }}
+              className="object-contain group-hover:scale-105 transition-transform duration-300"
+            />
           ) : (
             <div className="bg-gradient-to-br from-cyan-500 to-blue-600 p-2 rounded-xl shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform duration-300">
               <FlaskConical className="h-6 w-6 text-white" strokeWidth={2.5} />

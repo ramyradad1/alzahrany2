@@ -9,7 +9,9 @@ import { NavbarConfig, MenuItem } from '../../types';
 
 const DEFAULT_CONFIG: NavbarConfig = {
     logo_url: '',
+    logo_size: 40,
     favicon_url: '',
+    favicon_size: 32,
     site_name: 'Alzahrany Trading',
     site_name_ar: 'الزهراني للتجارة',
     menu_items: [
@@ -189,7 +191,9 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
             if (data && !error) {
                 setConfig({
                     logo_url: data.logo_url || '',
+                    logo_size: data.logo_size || 40,
                     favicon_url: data.favicon_url || '',
+                    favicon_size: data.favicon_size || 32,
                     site_name: data.site_name || DEFAULT_CONFIG.site_name,
                     site_name_ar: data.site_name_ar || DEFAULT_CONFIG.site_name_ar,
                     menu_items: data.menu_items?.length ? data.menu_items : DEFAULT_CONFIG.menu_items,
@@ -211,7 +215,9 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
                 .upsert({
                     id: 'main',
                     logo_url: config.logo_url,
+                    logo_size: config.logo_size,
                     favicon_url: config.favicon_url,
+                    favicon_size: config.favicon_size,
                     site_name: config.site_name,
                     site_name_ar: config.site_name_ar,
                     menu_items: config.menu_items,
@@ -378,22 +384,43 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
                             />
                             <button
                                 onClick={() => setEditingIcon({ id: 'logo_url', icon: config.logo_url })}
-                                className="px-3 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-colors text-slate-600 dark:text-slate-300"
+                                className="px-3 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg transition-colors"
                                 title="Upload Image"
                             >
                                 <Upload className="w-4 h-4" />
                             </button>
+                            {config.logo_url && (
+                                <button
+                                    onClick={() => setConfig({ ...config, logo_url: '' })}
+                                    className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+                                    title="Delete Logo"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
+                            )}
                         </div>
 
                         {config.logo_url ? (
-                            <div className="relative group w-fit">
-                                <img src={config.logo_url} alt="Logo Preview" className="h-16 object-contain bg-slate-50 dark:bg-slate-900 rounded p-1 border border-slate-200 dark:border-slate-700" />
-                                <button
-                                    onClick={() => setConfig({ ...config, logo_url: '' })}
-                                    className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                >
-                                    <X className="w-3 h-3" />
-                                </button>
+                            <div className="flex items-start gap-4">
+                                <img
+                                    src={config.logo_url}
+                                    alt="Logo Preview"
+                                    style={{ width: config.logo_size || 40 }}
+                                    className="object-contain bg-slate-50 dark:bg-slate-900 rounded p-1 border border-slate-200 dark:border-slate-700"
+                                />
+                                <div className="flex-1">
+                                    <label className="block text-xs font-medium text-slate-500 mb-2">
+                                        Logo Size: {config.logo_size || 40}px
+                                    </label>
+                                    <input
+                                        type="range"
+                                        min="20"
+                                        max="120"
+                                        value={config.logo_size || 40}
+                                        onChange={(e) => setConfig({ ...config, logo_size: parseInt(e.target.value) })}
+                                        className="w-full accent-cyan-500"
+                                    />
+                                </div>
                             </div>
                         ) : (
                             <div className="h-16 flex items-center justify-center bg-slate-50 dark:bg-slate-900 border border-dashed border-slate-300 dark:border-slate-600 rounded-lg text-xs text-slate-400">
@@ -420,22 +447,43 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
                             />
                             <button
                                 onClick={() => setEditingIcon({ id: 'favicon_url', icon: config.favicon_url || '' })}
-                                className="px-3 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-colors text-slate-600 dark:text-slate-300"
+                                className="px-3 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors"
                                 title="Upload Image"
                             >
                                 <Upload className="w-4 h-4" />
                             </button>
+                            {config.favicon_url && (
+                                <button
+                                    onClick={() => setConfig({ ...config, favicon_url: '' })}
+                                    className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+                                    title="Delete Favicon"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
+                            )}
                         </div>
 
                         {config.favicon_url ? (
-                            <div className="relative group w-fit">
-                                <img src={config.favicon_url} alt="Favicon Preview" className="w-12 h-12 object-contain bg-slate-50 dark:bg-slate-900 rounded p-1 border border-slate-200 dark:border-slate-700" />
-                                <button
-                                    onClick={() => setConfig({ ...config, favicon_url: '' })}
-                                    className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                >
-                                    <X className="w-3 h-3" />
-                                </button>
+                            <div className="flex items-start gap-4">
+                                <img
+                                    src={config.favicon_url}
+                                    alt="Favicon Preview"
+                                    style={{ width: config.favicon_size || 32, height: config.favicon_size || 32 }}
+                                    className="object-contain bg-slate-50 dark:bg-slate-900 rounded p-1 border border-slate-200 dark:border-slate-700"
+                                />
+                                <div className="flex-1">
+                                    <label className="block text-xs font-medium text-slate-500 mb-2">
+                                        Favicon Size: {config.favicon_size || 32}px
+                                    </label>
+                                    <input
+                                        type="range"
+                                        min="16"
+                                        max="64"
+                                        value={config.favicon_size || 32}
+                                        onChange={(e) => setConfig({ ...config, favicon_size: parseInt(e.target.value) })}
+                                        className="w-full accent-purple-500"
+                                    />
+                                </div>
                             </div>
                         ) : (
                             <div className="w-12 h-12 flex items-center justify-center bg-slate-50 dark:bg-slate-900 border border-dashed border-slate-300 dark:border-slate-600 rounded-lg text-xs text-slate-400">

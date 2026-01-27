@@ -227,7 +227,9 @@ export interface MenuItem {
 
 export interface NavbarConfig {
   logo_url: string;
+  logo_size?: number; // Size in pixels (width), height auto
   favicon_url?: string;
+  favicon_size?: number; // Size in pixels
   site_name: string;
   site_name_ar: string;
   menu_items: MenuItem[];
