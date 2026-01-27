@@ -5,6 +5,40 @@ import {
     Loader2, Check, AlertCircle, Image, Type, Link as LinkIcon,
     X, Upload
 } from 'lucide-react';
+
+const processImage = (file: File, callback: (base64: string) => void) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+        const img = document.createElement('img');
+        img.src = event.target?.result as string;
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const MAX_WIDTH = 200;
+            const MAX_HEIGHT = 200;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+                if (width > MAX_WIDTH) {
+                    height *= MAX_WIDTH / width;
+                    width = MAX_WIDTH;
+                }
+            } else {
+                if (height > MAX_HEIGHT) {
+                    width *= MAX_HEIGHT / height;
+                    height = MAX_HEIGHT;
+                }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            ctx?.drawImage(img, 0, 0, width, height);
+            callback(canvas.toDataURL('image/webp', 0.8)); // Convert to optimized WebP
+        };
+    };
+};
 import { NavbarConfig, MenuItem } from '../../types';
 
 const DEFAULT_CONFIG: NavbarConfig = {
@@ -633,11 +667,11 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
                                         onChange={(e) => {
                                             const file = e.target.files?.[0];
                                             if (file) {
-                                                const reader = new FileReader();
-                                                reader.onloadend = () => {
-                                                    handleIconChange(reader.result as string);
-                                                };
-                                                reader.readAsDataURL(file);
+                                                setLoading(true);
+                                                processImage(file, (base64) => {
+                                                    handleIconChange(base64);
+                                                    setLoading(false);
+                                                });
                                             }
                                         }}
                                     />
