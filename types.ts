@@ -214,3 +214,21 @@ export interface Translations {
   storageErrorMsg: string;
   loadingError: string;
 }
+
+export interface MenuItem {
+  id: string;
+  label: string;
+  labelAr: string;
+  href: string;
+  order: number;
+  icon?: string;
+  children?: MenuItem[];
+}
+
+export interface NavbarConfig {
+  logo_url: string;
+  favicon_url?: string;
+  site_name: string;
+  site_name_ar: string;
+  menu_items: MenuItem[];
+}

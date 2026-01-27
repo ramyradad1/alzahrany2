@@ -5,26 +5,11 @@ import {
     Loader2, Check, AlertCircle, Image, Type, Link as LinkIcon,
     X, Upload
 } from 'lucide-react';
-
-interface MenuItem {
-    id: string;
-    label: string;
-    labelAr: string;
-    href: string;
-    order: number;
-    icon?: string;
-    children?: MenuItem[];
-}
-
-interface NavbarConfig {
-    logo_url: string;
-    site_name: string;
-    site_name_ar: string;
-    menu_items: MenuItem[];
-}
+import { NavbarConfig, MenuItem } from '../../types';
 
 const DEFAULT_CONFIG: NavbarConfig = {
     logo_url: '',
+    favicon_url: '',
     site_name: 'Alzahrany Trading',
     site_name_ar: 'الزهراني للتجارة',
     menu_items: [
@@ -204,6 +189,7 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
             if (data && !error) {
                 setConfig({
                     logo_url: data.logo_url || '',
+                    favicon_url: data.favicon_url || '',
                     site_name: data.site_name || DEFAULT_CONFIG.site_name,
                     site_name_ar: data.site_name_ar || DEFAULT_CONFIG.site_name_ar,
                     menu_items: data.menu_items?.length ? data.menu_items : DEFAULT_CONFIG.menu_items,
@@ -225,6 +211,7 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
                 .upsert({
                     id: 'main',
                     logo_url: config.logo_url,
+                    favicon_url: config.favicon_url,
                     site_name: config.site_name,
                     site_name_ar: config.site_name_ar,
                     menu_items: config.menu_items,
@@ -337,10 +324,17 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
         setEditingIcon({ id, icon });
     };
 
-    const updateIconValue = (val: string) => {
+    const handleIconChange = (val: string) => {
         if (!editingIcon) return;
-        setEditingIcon(prev => ({ ...prev!, icon: val }));
-        handleUpdate(editingIcon.id, 'icon', val);
+        setEditingIcon(prev => prev ? { ...prev, icon: val } : null);
+
+        if (editingIcon.id === 'logo_url') {
+            setConfig(prev => ({ ...prev, logo_url: val }));
+        } else if (editingIcon.id === 'favicon_url') {
+            setConfig(prev => ({ ...prev, favicon_url: val }));
+        } else {
+            handleUpdate(editingIcon.id, 'icon', val);
+        }
     };
 
     const addTopLevelItem = () => {
@@ -365,21 +359,91 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
 
     return (
         <div className="p-6 space-y-6 animate-fade-in-up">
-            {/* Logo URL */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700">
-                <h4 className="font-semibold mb-4 flex items-center gap-2 text-slate-900 dark:text-white">
-                    <Image className="w-5 h-5 text-cyan-500" /> Logo URL
-                </h4>
-                <input
-                    type="url"
-                    value={config.logo_url}
-                    onChange={(e) => setConfig({ ...config, logo_url: e.target.value })}
-                    className="w-full px-4 py-2.5 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-white"
-                    placeholder="https://example.com/logo.png"
-                />
-                {config.logo_url && (
-                    <img src={config.logo_url} alt="Logo Preview" className="mt-4 h-16 object-contain" />
-                )}
+            {/* Logo & Favicon Section */}
+            <div className="grid md:grid-cols-2 gap-6">
+                {/* Logo URL */}
+                <div className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700">
+                    <h4 className="font-semibold mb-4 flex items-center gap-2 text-slate-900 dark:text-white">
+                        <Image className="w-5 h-5 text-cyan-500" /> Website Logo
+                    </h4>
+
+                    <div className="space-y-4">
+                        <div className="flex gap-2">
+                            <input
+                                type="url"
+                                value={config.logo_url}
+                                onChange={(e) => setConfig({ ...config, logo_url: e.target.value })}
+                                className="flex-1 px-4 py-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-white text-sm"
+                                placeholder="https://..."
+                            />
+                            <button
+                                onClick={() => setEditingIcon({ id: 'logo_url', icon: config.logo_url })}
+                                className="px-3 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-colors text-slate-600 dark:text-slate-300"
+                                title="Upload Image"
+                            >
+                                <Upload className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        {config.logo_url ? (
+                            <div className="relative group w-fit">
+                                <img src={config.logo_url} alt="Logo Preview" className="h-16 object-contain bg-slate-50 dark:bg-slate-900 rounded p-1 border border-slate-200 dark:border-slate-700" />
+                                <button
+                                    onClick={() => setConfig({ ...config, logo_url: '' })}
+                                    className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                    <X className="w-3 h-3" />
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="h-16 flex items-center justify-center bg-slate-50 dark:bg-slate-900 border border-dashed border-slate-300 dark:border-slate-600 rounded-lg text-xs text-slate-400">
+                                No Logo
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Favicon URL */}
+                <div className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700">
+                    <h4 className="font-semibold mb-4 flex items-center gap-2 text-slate-900 dark:text-white">
+                        <Image className="w-5 h-5 text-purple-500" /> Favicon (Icon)
+                    </h4>
+
+                    <div className="space-y-4">
+                        <div className="flex gap-2">
+                            <input
+                                type="url"
+                                value={config.favicon_url || ''}
+                                onChange={(e) => setConfig({ ...config, favicon_url: e.target.value })}
+                                className="flex-1 px-4 py-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-white text-sm"
+                                placeholder="https://..."
+                            />
+                            <button
+                                onClick={() => setEditingIcon({ id: 'favicon_url', icon: config.favicon_url || '' })}
+                                className="px-3 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-colors text-slate-600 dark:text-slate-300"
+                                title="Upload Image"
+                            >
+                                <Upload className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        {config.favicon_url ? (
+                            <div className="relative group w-fit">
+                                <img src={config.favicon_url} alt="Favicon Preview" className="w-12 h-12 object-contain bg-slate-50 dark:bg-slate-900 rounded p-1 border border-slate-200 dark:border-slate-700" />
+                                <button
+                                    onClick={() => setConfig({ ...config, favicon_url: '' })}
+                                    className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                    <X className="w-3 h-3" />
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="w-12 h-12 flex items-center justify-center bg-slate-50 dark:bg-slate-900 border border-dashed border-slate-300 dark:border-slate-600 rounded-lg text-xs text-slate-400">
+                                None
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
 
             {/* Site Name */}
@@ -475,7 +539,7 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                 <Image className="w-4 h-4 text-cyan-500" />
-                                Select Icon
+                                {editingIcon.id === 'logo_url' ? 'Upload Logo' : editingIcon.id === 'favicon_url' ? 'Upload Favicon' : 'Select Icon'}
                             </h3>
                             <button
                                 onClick={() => setEditingIcon(null)}
@@ -492,7 +556,7 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
                                 <input
                                     type="text"
                                     value={editingIcon.icon || ''}
-                                    onChange={(e) => updateIconValue(e.target.value)}
+                                    onChange={(e) => handleIconChange(e.target.value)}
                                     placeholder="https://example.com/icon.png"
                                     className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 outline-none"
                                 />
@@ -516,14 +580,14 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
                                     </div>
                                     <input
                                         type="file"
-                                        accept="image/*"
+                                        accept="image/png,image/svg+xml,image/jpeg,image/webp"
                                         className="hidden"
                                         onChange={(e) => {
                                             const file = e.target.files?.[0];
                                             if (file) {
                                                 const reader = new FileReader();
                                                 reader.onloadend = () => {
-                                                    updateIconValue(reader.result as string);
+                                                    handleIconChange(reader.result as string);
                                                 };
                                                 reader.readAsDataURL(file);
                                             }
@@ -535,9 +599,7 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
                             {editingIcon.icon && (
                                 <div className="pt-2 border-t border-slate-100 dark:border-slate-700">
                                     <button
-                                        onClick={() => {
-                                            updateIconValue('');
-                                        }}
+                                        onClick={() => handleIconChange('')}
                                         className="w-full py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors font-medium flex items-center justify-center gap-2"
                                     >
                                         <Trash2 className="w-4 h-4" /> Remove Icon

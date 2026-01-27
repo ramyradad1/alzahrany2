@@ -1,25 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Lock, Moon, Sun, Globe, Search, Menu, X, FlaskConical, ChevronDown, ChevronRight } from 'lucide-react';
-import { Language, Translations } from '../types';
+import { Language, Translations, MenuItem, NavbarConfig } from '../types';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../utils/supabase';
-
-interface MenuItem {
-  id: string;
-  label: string;
-  labelAr: string;
-  href: string;
-  order: number;
-  icon?: string;
-  children?: MenuItem[];
-}
-
-interface NavbarConfig {
-  logo_url: string;
-  site_name: string;
-  site_name_ar: string;
-  menu_items: MenuItem[];
-}
 
 interface NavbarProps {
   isDarkMode: boolean;

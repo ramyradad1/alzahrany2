@@ -66,20 +66,27 @@ const App = () => {
       const cachedProducts = localStorage.getItem('cached_products');
       const cachedPartners = localStorage.getItem('cached_partners');
       const cachedSections = localStorage.getItem('cached_sections');
+      const cachedNavbar = localStorage.getItem('cached_navbar');
 
       if (cachedProducts) setProducts(JSON.parse(cachedProducts));
       if (cachedPartners) setPartners(JSON.parse(cachedPartners));
       if (cachedSections) setSections(JSON.parse(cachedSections));
+      if (cachedNavbar) {
+        const cfg = JSON.parse(cachedNavbar);
+        if (cfg.favicon_url) updateFavicon(cfg.favicon_url);
+        if (cfg.site_name) document.title = cfg.site_name;
+      }
     } catch (e) {
       console.warn('Error loading cached data:', e);
     }
 
     // Step 2: Fetch fresh data from Supabase in background
     try {
-      const [prodRes, partRes, sectRes] = await Promise.all([
+      const [prodRes, partRes, sectRes, navRes] = await Promise.all([
         supabase.from('products').select('*'),
         supabase.from('partners').select('*'),
-        supabase.from('sections').select('*').order('order', { ascending: true })
+        supabase.from('sections').select('*').order('order', { ascending: true }),
+        supabase.from('navbar_config').select('*').eq('id', 'main').single()
       ]);
 
       if (prodRes.data) {
@@ -89,6 +96,13 @@ const App = () => {
       if (partRes.data) {
         setPartners(partRes.data);
         localStorage.setItem('cached_partners', JSON.stringify(partRes.data));
+      }
+
+      if (navRes.data) {
+        localStorage.setItem('cached_navbar', JSON.stringify(navRes.data));
+        if (navRes.data.favicon_url) updateFavicon(navRes.data.favicon_url);
+        if (navRes.data.site_name && lang === 'en') document.title = navRes.data.site_name;
+        if (navRes.data.site_name_ar && lang === 'ar') document.title = navRes.data.site_name_ar;
       }
 
       if (sectRes.data && sectRes.data.length > 0) {
@@ -128,6 +142,16 @@ const App = () => {
       setLoading(false);
     }
   }
+
+  const updateFavicon = (url: string) => {
+    let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      document.getElementsByTagName('head')[0].appendChild(link);
+    }
+    link.href = url;
+  };
 
   // --- CRUD Handlers ---
   const handleAddProduct = async (productData: ProductFormData) => {
