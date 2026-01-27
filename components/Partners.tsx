@@ -30,12 +30,18 @@ export const Partners: React.FC<PartnersProps> = ({ partners, title, content, la
         )}
       </div>
 
-      <div className="relative w-full overflow-hidden">
+      <div className="relative w-full overflow-hidden" dir="ltr">
         {/* Gradients to fade edges */}
         <div className="absolute top-0 left-0 w-24 h-full bg-gradient-to-r from-white dark:from-slate-900 to-transparent z-10"></div>
         <div className="absolute top-0 right-0 w-24 h-full bg-gradient-to-l from-white dark:from-slate-900 to-transparent z-10"></div>
 
-        <div className="flex animate-scroll hover:pause-animation w-max py-8">
+        <div
+          className="flex w-max py-8 animate-scroll hover:pause-animation will-change-transform"
+          style={{
+            '--duration': `${Math.max(20, partners.length * 5)}s`,
+            '--direction': lang === 'ar' ? 'reverse' : 'normal'
+          } as React.CSSProperties}
+        >
           {displayPartners.map((partner, index) => (
             <div
               key={`${partner.id}-${index}`}
@@ -64,10 +70,15 @@ export const Partners: React.FC<PartnersProps> = ({ partners, title, content, la
           100% { transform: translateX(-50%); }
         }
         .animate-scroll {
-          animation: scroll 20s linear infinite;
+          animation: scroll var(--duration) linear infinite;
+          animation-direction: var(--direction);
         }
         .pause-animation {
           animation-play-state: paused;
+        }
+        .will-change-transform {
+          will-change: transform;
+          transform: translateZ(0); /* Hardware acceleration hack */
         }
       `}</style>
     </div>
