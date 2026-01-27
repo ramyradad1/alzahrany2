@@ -22,7 +22,7 @@ import { Footer } from './components/Footer';
 import { BackgroundAnimation } from './components/BackgroundAnimation';
 import { translations } from './translations';
 import { Product, Partner, Section, Language, ProductFormData } from './types';
-import { FlaskConical } from 'lucide-react';
+
 
 const App = () => {
   const [isDarkMode, setIsDarkMode] = useState(() => {

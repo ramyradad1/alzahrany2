@@ -1,5 +1,5 @@
 import React from 'react';
-import { Facebook, Twitter, Linkedin, Instagram, MapPin, Phone, Mail, FlaskConical } from 'lucide-react';
+import { Facebook, Twitter, Linkedin, Instagram, MapPin, Phone, Mail } from 'lucide-react';
 import { Section, Language } from '../types';
 
 interface FooterProps {
@@ -19,9 +19,6 @@ export const Footer: React.FC<FooterProps> = ({ t, lang, content }) => {
                     {/* Brand Column */}
                     <div className="space-y-6">
                         <div className="flex items-center gap-2 text-white">
-                            <div className="p-2 bg-slate-800 rounded-lg">
-                                <FlaskConical className="w-6 h-6 text-cyan-400" />
-                            </div>
                             <span className="font-bold text-xl tracking-tight">Alzahrany</span>
                         </div>
                         <p className="text-slate-400 text-sm leading-relaxed">

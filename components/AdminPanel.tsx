@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, LogOut, Package, Users, LayoutGrid, Home, Loader2, ChevronLeft, ChevronRight, Settings, FlaskConical, Menu, X } from 'lucide-react';
+import { Lock, LogOut, Package, Users, LayoutGrid, Home, Loader2, ChevronLeft, ChevronRight, Settings, Menu, X } from 'lucide-react';
 import { supabase } from '../supabase';
 import { Translations, Language } from '../types';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
@@ -117,7 +117,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ t, lang }) => {
               <div className="flex justify-center mb-8">
                 <div className="relative">
                   <div className="w-20 h-20 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-cyan-500/30">
-                    <FlaskConical className="w-10 h-10 text-white" />
+                    {/* Placeholder or text */}
                   </div>
                   <div className="absolute -inset-2 bg-gradient-to-br from-cyan-400/20 to-blue-600/20 rounded-3xl blur-xl -z-10" />
                 </div>
@@ -184,7 +184,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ t, lang }) => {
         <div className="p-4 border-b border-slate-200 dark:border-slate-700">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-xl flex items-center justify-center shrink-0">
-              <FlaskConical className="w-5 h-5 text-white" />
+              {/* Logo placeholder or upload later if needed */}
             </div>
             {sidebarOpen && (
               <div className="overflow-hidden">
@@ -247,7 +247,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ t, lang }) => {
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-4 z-40">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-xl flex items-center justify-center">
-            <FlaskConical className="w-5 h-5 text-white" />
+            {/* Placeholder */}
           </div>
           <span className="font-bold text-slate-900 dark:text-white">Admin</span>
         </div>

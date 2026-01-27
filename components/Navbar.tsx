@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, Moon, Sun, Globe, Search, Menu, X, FlaskConical, ChevronDown, ChevronRight } from 'lucide-react';
+import { Lock, Moon, Sun, Globe, Search, Menu, X, ChevronDown, ChevronRight } from 'lucide-react';
 import { Language, Translations, MenuItem, NavbarConfig } from '../types';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../utils/supabase';
@@ -268,17 +268,13 @@ export const Navbar: React.FC<NavbarProps> = ({
           onClick={() => handleNavigation('/')}
           title={t.tooltipHome}
         >
-          {config?.logo_url ? (
+          {config?.logo_url && (
             <img
               src={config.logo_url}
               alt="Logo"
               style={{ width: config.logo_size || 40, height: 'auto' }}
               className="object-contain group-hover:scale-105 transition-transform duration-300"
             />
-          ) : (
-            <div className="bg-gradient-to-br from-cyan-500 to-blue-600 p-2 rounded-xl shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform duration-300">
-              <FlaskConical className="h-6 w-6 text-white" strokeWidth={2.5} />
-            </div>
           )}
           <span className="font-black text-xl tracking-tight hidden sm:block text-slate-800 dark:text-white">
             {siteName}
