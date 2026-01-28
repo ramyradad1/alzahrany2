@@ -153,7 +153,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   lang,
   toggleLang,
   t,
-  t,
   onSearch,
   products,
   partners,
