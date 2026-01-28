@@ -430,56 +430,58 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Desktop Navigation - Absolutely Centered */}
-        <div className="hidden lg:flex items-center space-x-6 rtl:space-x-reverse absolute left-1/2 top-0 h-full transform -translate-x-1/2">
-          {menuItems.sort((a, b) => a.order - b.order).map(item => (
-            <div
-              key={item.id}
-              className="relative h-full flex items-center"
-              onMouseEnter={() => {
-                if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
-                if (item.children?.length) setOpenDropdown(item.id);
-              }}
-              onMouseLeave={() => {
-                hoverTimeoutRef.current = setTimeout(() => {
-                  setOpenDropdown(null);
-                }, 150); // 150ms delay to prevent flickering
-              }}
-            >
-              <button
-                onClick={() => handleNavigation(item.href)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[15px] font-medium transition-all duration-200 ${isActive(item.href)
-                  ? 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-400'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
-                  }`}
+        <div className="hidden lg:flex absolute inset-0 justify-center items-center pointer-events-none">
+          <div className="flex items-center space-x-6 rtl:space-x-reverse h-full pointer-events-auto">
+            {menuItems.sort((a, b) => a.order - b.order).map(item => (
+              <div
+                key={item.id}
+                className="relative h-full flex items-center"
+                onMouseEnter={() => {
+                  if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+                  if (item.children?.length) setOpenDropdown(item.id);
+                }}
+                onMouseLeave={() => {
+                  hoverTimeoutRef.current = setTimeout(() => {
+                    setOpenDropdown(null);
+                  }, 150); // 150ms delay to prevent flickering
+                }}
               >
-                {item.icon && <img src={item.icon} alt="" className="w-4 h-4 object-contain" />}
-                {lang === 'en' ? item.label : item.labelAr}
-                {item.children && item.children.length > 0 && (
-                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${openDropdown === item.id ? 'rotate-180' : ''}`} />
-                )}
-              </button>
-
-              {/* Desktop Dropdown */}
-              {openDropdown === item.id && item.children && item.children.length > 0 && (
-                <div
-                  onMouseEnter={() => {
-                    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
-                  }}
-                  onMouseLeave={() => {
-                    hoverTimeoutRef.current = setTimeout(() => {
-                      setOpenDropdown(null);
-                    }, 150);
-                  }}
+                <button
+                  onClick={() => handleNavigation(item.href)}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[15px] font-medium transition-all duration-200 ${isActive(item.href)
+                    ? 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-400'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
+                    }`}
                 >
-                  <DesktopDropdown
-                    items={item.children}
-                    lang={lang}
-                    onNavigate={handleNavigation}
-                  />
-                </div>
-              )}
-            </div>
-          ))}
+                  {item.icon && <img src={item.icon} alt="" className="w-4 h-4 object-contain" />}
+                  {lang === 'en' ? item.label : item.labelAr}
+                  {item.children && item.children.length > 0 && (
+                    <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${openDropdown === item.id ? 'rotate-180' : ''}`} />
+                  )}
+                </button>
+
+                {/* Desktop Dropdown */}
+                {openDropdown === item.id && item.children && item.children.length > 0 && (
+                  <div
+                    onMouseEnter={() => {
+                      if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+                    }}
+                    onMouseLeave={() => {
+                      hoverTimeoutRef.current = setTimeout(() => {
+                        setOpenDropdown(null);
+                      }, 150);
+                    }}
+                  >
+                    <DesktopDropdown
+                      items={item.children}
+                      lang={lang}
+                      onNavigate={handleNavigation}
+                    />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Actions */}
