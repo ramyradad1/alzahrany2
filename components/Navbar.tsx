@@ -408,11 +408,11 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
-      <div className="relative w-full px-6 lg:px-8 h-20 flex items-center justify-between mx-auto max-w-[1920px]">
+      <div className="relative w-full px-6 lg:px-8 h-20 flex items-center gap-4 mx-auto max-w-[1920px]">
 
-        {/* Logo */}
+        {/* Logo Section - Flex Shrink 0 to prevent crushing */}
         <div
-          className="flex items-center gap-3 cursor-pointer group flex-shrink-0"
+          className="flex items-center gap-3 cursor-pointer group flex-shrink-0 min-w-fit"
           onClick={() => handleNavigation('/')}
           title={t.tooltipHome}
         >
@@ -429,9 +429,12 @@ export const Navbar: React.FC<NavbarProps> = ({
           </span>
         </div>
 
-        {/* Desktop Navigation - Absolutely Centered */}
-        <div className="hidden lg:flex absolute inset-0 justify-center items-center pointer-events-none">
-          <div className="flex items-center space-x-6 rtl:space-x-reverse h-full pointer-events-auto">
+        {/* Desktop Navigation - Flexible Center */}
+        {/* We use flex-1 to take up available space and justify-center to center the menu */}
+        {/* If space becomes too tight, it will simply shrink the gap, but NEVER overlap */}
+        <div className="hidden lg:flex flex-1 justify-center items-center h-full min-w-0">
+          <div className="flex items-center space-x-1 xl:space-x-6 rtl:space-x-reverse h-full whitespace-nowrap">
+            {/* Reduced base space-x to 1 (4px) and xl to 6 (24px) to adapt better to smaller screens */}
             {menuItems.sort((a, b) => a.order - b.order).map(item => (
               <div
                 key={item.id}
@@ -448,7 +451,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 <button
                   onClick={() => handleNavigation(item.href)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[15px] font-medium transition-all duration-200 ${isActive(item.href)
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[14px] xl:text-[15px] font-medium transition-all duration-200 ${isActive(item.href)
                     ? 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-400'
                     : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
                     }`}
@@ -484,8 +487,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-3 flex-shrink-0">
+        {/* Actions - Flex Shrink 0 */}
+        <div className="flex items-center gap-3 flex-shrink-0 justify-end">
           {/* Search */}
           {!location.pathname.startsWith('/admin') && (
             <div className="relative hidden lg:block w-48 transition-all focus-within:w-64 group" onClick={e => e.stopPropagation()}>
