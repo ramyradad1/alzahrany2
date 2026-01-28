@@ -30,7 +30,7 @@ const DesktopDropdown: React.FC<{
       className={`absolute ${depth === 0 ? 'top-full left-0 pt-2' : 'left-full top-0 pl-1'} z-50`}
     >
       {/* The actual dropdown card */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 py-2 min-w-[200px] animate-fadeIn">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 py-2 min-w-[200px] animate-fadeIn max-h-[75vh] overflow-y-auto custom-scrollbar">
         {items.sort((a, b) => a.order - b.order).map(item => (
           <div
             key={item.id}
@@ -333,7 +333,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
-      <div className="w-full px-6 lg:px-8 h-20 flex items-center justify-between mx-auto max-w-[1920px]">
+      <div className="relative w-full px-6 lg:px-8 h-20 flex items-center justify-between mx-auto max-w-[1920px]">
 
         {/* Logo */}
         <div
@@ -354,8 +354,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           </span>
         </div>
 
-        {/* Desktop Navigation */}
-        <div className="hidden lg:flex items-center space-x-6 rtl:space-x-reverse h-full">
+        {/* Desktop Navigation - Absolutely Centered */}
+        <div className="hidden lg:flex items-center space-x-6 rtl:space-x-reverse absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
           {menuItems.sort((a, b) => a.order - b.order).map(item => (
             <div
               key={item.id}
