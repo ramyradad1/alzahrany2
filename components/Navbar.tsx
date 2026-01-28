@@ -153,7 +153,11 @@ export const Navbar: React.FC<NavbarProps> = ({
   lang,
   toggleLang,
   t,
-  onSearch
+  t,
+  onSearch,
+  products,
+  partners,
+  setProductModalOpen
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -544,7 +548,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 placeholder={t.search}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyDown={handleSearch}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
               />
             </div>
           )}
