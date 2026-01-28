@@ -488,7 +488,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center gap-3 flex-shrink-0">
           {/* Search */}
           {!location.pathname.startsWith('/admin') && (
-            <div className="relative hidden lg:block w-48 transition-all focus-within:w-80 group" onClick={e => e.stopPropagation()}>
+            <div className="relative hidden lg:block w-48 transition-all focus-within:w-64 group" onClick={e => e.stopPropagation()}>
               <div className="absolute inset-y-0 left-0 rtl:right-0 rtl:left-auto pl-3 rtl:pr-3 flex items-center pointer-events-none">
                 <Search className="h-4 w-4 text-slate-400 group-focus-within:text-cyan-500 transition-colors" />
               </div>
