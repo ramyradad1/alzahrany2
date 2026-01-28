@@ -283,7 +283,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     setIsMobileMenuOpen(false);
   };
 
-  const handleResultClick = (type: 'product' | 'category' | 'partner', data: any) => {
+  const handleResultClick = (type: 'product' | 'category' | 'partner' | 'menu', data: any) => {
     console.log('Result clicked:', type, data);
     setShowSearchResults(false);
     setSearchTerm('');
@@ -298,6 +298,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         const el = document.getElementById('partners');
         el?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
+    } else if (type === 'menu') {
+      handleNavigation(data.href);
     }
   };
 
