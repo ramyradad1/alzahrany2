@@ -22,12 +22,28 @@ const DesktopDropdown: React.FC<{
   lang: Language;
   onNavigate: (href: string) => void;
   depth?: number;
-}> = ({ items, lang, onNavigate, depth = 0 }) => {
+  position?: { top: number; left: number };
+}> = ({ items, lang, onNavigate, depth = 0, position }) => {
   const [openId, setOpenId] = useState<string | null>(null);
+  const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
+  const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  return (
+  // Calculate styles based on depth
+  const style: React.CSSProperties = depth === 0
+      ? {} // Root dropdown uses absolute positioning from parent
+      : position
+        ? { position: 'fixed', top: position.top, left: position.left }
+        : {};
+
+  const className = depth === 0
+    ? `absolute top-full left-0 pt-2 z-[60]`
+    : `z-[60] ml-1`; // Added margin for separation
 
   return (
     <div
-      className={`absolute ${depth === 0 ? 'top-full left-0 pt-2' : 'left-full top-0 pl-1'} z-[60]`}
+      className={className}
+      style={style}
     >
       {/* The actual dropdown card */}
       <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 py-2 min-w-[200px] animate-fadeIn max-h-[75vh] overflow-y-auto custom-scrollbar">
@@ -35,8 +51,24 @@ const DesktopDropdown: React.FC<{
           <div
             key={item.id}
             className="relative"
-            onMouseEnter={() => item.children?.length ? setOpenId(item.id) : null}
-            onMouseLeave={() => setOpenId(null)}
+            onMouseEnter={(e) => {
+              if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+
+              // Calculate coordinates for child dropdown
+              if (item.children?.length) {
+                const rect = e.currentTarget.getBoundingClientRect();
+                setCoords({
+                  top: rect.top,
+                  left: rect.right
+                });
+                setOpenId(item.id);
+              }
+            }}
+            onMouseLeave={() => {
+              hoverTimeoutRef.current = setTimeout(() => {
+                setOpenId(null);
+              }, 150);
+            }}
           >
             <button
               onClick={() => onNavigate(item.href)}
@@ -51,14 +83,26 @@ const DesktopDropdown: React.FC<{
               )}
             </button>
 
-            {/* Nested dropdown */}
-            {openId === item.id && item.children && item.children.length > 0 && (
-              <DesktopDropdown
-                items={item.children}
-                lang={lang}
-                onNavigate={onNavigate}
-                depth={depth + 1}
-              />
+            {/* Nested dropdown with Portal-like Fixed Positioning */}
+            {openId === item.id && item.children && item.children.length > 0 && coords && (
+              <div
+                onMouseEnter={() => {
+                  if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+                }}
+                onMouseLeave={() => {
+                  hoverTimeoutRef.current = setTimeout(() => {
+                    setOpenId(null);
+                  }, 150);
+                }}
+              >
+                <DesktopDropdown
+                  items={item.children}
+                  lang={lang}
+                  onNavigate={onNavigate}
+                  depth={depth + 1}
+                  position={coords}
+                />
+              </div>
             )}
           </div>
         ))}
