@@ -282,7 +282,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-1 rtl:space-x-reverse h-full">
+        <div className="hidden lg:flex items-center space-x-6 rtl:space-x-reverse h-full">
           {menuItems.sort((a, b) => a.order - b.order).map(item => (
             <div
               key={item.id}
@@ -292,7 +292,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <button
                 onClick={() => handleNavigation(item.href)}
-                className={`flex items-center gap-1.5 px-4 h-10 rounded-lg text-[15px] font-medium transition-all duration-200 ${isActive(item.href)
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[15px] font-medium transition-all duration-200 ${isActive(item.href)
                   ? 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-400'
                   : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
@@ -369,9 +369,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu Button - Show on md and below since we moved nav to lg */}
           <button
-            className="md:hidden p-2 text-slate-600 dark:text-slate-300"
+            className="lg:hidden p-2 text-slate-600 dark:text-slate-300"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             title={t.tooltipMenu}
           >
@@ -381,7 +381,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* Mobile Menu */}
-      <div className={`md:hidden transition-all duration-300 ease-in-out border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 ${isMobileMenuOpen ? 'max-h-[85vh] opacity-100 overflow-y-auto' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+      <div className={`lg:hidden transition-all duration-300 ease-in-out border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 ${isMobileMenuOpen ? 'max-h-[85vh] opacity-100 overflow-y-auto' : 'max-h-0 opacity-0 overflow-hidden'}`}>
         <div className="px-4 py-3 space-y-3">
           {/* Mobile Search */}
           {!location.pathname.startsWith('/admin') && (

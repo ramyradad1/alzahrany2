@@ -24,6 +24,8 @@ import { translations } from './translations';
 import { Product, Partner, Section, Language, ProductFormData } from './types';
 
 
+import { MigrationDashboard } from './components/MigrationDashboard';
+
 const App = () => {
   const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof window !== 'undefined') return localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -202,6 +204,7 @@ const App = () => {
       <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'dark bg-slate-950 text-white' : 'bg-slate-50 text-slate-900'} font-sans`}>
         {/* Animated Background */}
         <BackgroundAnimation />
+        <MigrationDashboard />
 
         {productModalOpen && <ProductModal product={productModalOpen} onClose={() => setProductModalOpen(null)} t={t} />}
 
