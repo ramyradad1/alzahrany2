@@ -162,6 +162,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [config, setConfig] = useState<NavbarConfig | null>(null);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const [searchResults, setSearchResults] = useState<{ products: Product[], categories: string[], partners: Partner[], menuItems: MenuItem[] } | null>(null);
   const [showSearchResults, setShowSearchResults] = useState(false);
 
@@ -391,8 +392,15 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div
               key={item.id}
               className="relative h-full flex items-center"
-              onMouseEnter={() => item.children?.length ? setOpenDropdown(item.id) : null}
-              onMouseLeave={() => setOpenDropdown(null)}
+              onMouseEnter={() => {
+                if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+                if (item.children?.length) setOpenDropdown(item.id);
+              }}
+              onMouseLeave={() => {
+                hoverTimeoutRef.current = setTimeout(() => {
+                  setOpenDropdown(null);
+                }, 150); // 150ms delay to prevent flickering
+              }}
             >
               <button
                 onClick={() => handleNavigation(item.href)}
@@ -410,11 +418,22 @@ export const Navbar: React.FC<NavbarProps> = ({
 
               {/* Desktop Dropdown */}
               {openDropdown === item.id && item.children && item.children.length > 0 && (
-                <DesktopDropdown
-                  items={item.children}
-                  lang={lang}
-                  onNavigate={handleNavigation}
-                />
+                <div
+                  onMouseEnter={() => {
+                    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+                  }}
+                  onMouseLeave={() => {
+                    hoverTimeoutRef.current = setTimeout(() => {
+                      setOpenDropdown(null);
+                    }, 150);
+                  }}
+                >
+                  <DesktopDropdown
+                    items={item.children}
+                    lang={lang}
+                    onNavigate={handleNavigation}
+                  />
+                </div>
               )}
             </div>
           ))}
