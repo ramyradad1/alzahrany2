@@ -28,13 +28,12 @@ const DesktopDropdown: React.FC<{
   const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
   const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
-  return (
   // Calculate styles based on depth
   const style: React.CSSProperties = depth === 0
-      ? {} // Root dropdown uses absolute positioning from parent
-      : position
-        ? { position: 'fixed', top: position.top, left: position.left }
-        : {};
+    ? {} // Root dropdown uses absolute positioning from parent
+    : position
+      ? { position: 'fixed', top: position.top, left: position.left }
+      : {};
 
   const className = depth === 0
     ? `absolute top-full left-0 pt-2 z-[60]`
