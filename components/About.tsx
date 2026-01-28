@@ -185,7 +185,7 @@ export const About: React.FC<AboutProps> = ({ t, content, lang = 'en' }) => {
                 <div className="w-1 h-12 bg-purple-500 rounded-full group-hover:h-16 transition-all duration-300"></div>
                 <div>
                   <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Phone</p>
-                  <p className="font-medium group-hover:text-purple-400 transition-colors">+1 (800) LAB-GEAR</p>
+                  <p className="font-medium group-hover:text-purple-400 transition-colors" dir="ltr">+966 57 581 8827</p>
                 </div>
               </div>
             </div>
@@ -246,8 +246,8 @@ export const About: React.FC<AboutProps> = ({ t, content, lang = 'en' }) => {
               type="submit"
               disabled={isSubmitting}
               className={`w-full py-4 rounded-lg font-bold text-white transition-all flex items-center justify-center gap-2 ${isSent
-                  ? 'bg-green-600 hover:bg-green-700'
-                  : 'bg-cyan-600 hover:bg-cyan-700 shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50 hover:-translate-y-1'
+                ? 'bg-green-600 hover:bg-green-700'
+                : 'bg-cyan-600 hover:bg-cyan-700 shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50 hover:-translate-y-1'
                 } disabled:opacity-70 disabled:cursor-not-allowed`}
             >
               {isSubmitting ? (

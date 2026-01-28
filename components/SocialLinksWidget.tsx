@@ -14,7 +14,7 @@ const DEFAULT_LINKS: SocialLink[] = [
     {
         name: 'WhatsApp',
         icon: <MessageCircle className="w-5 h-5" />,
-        url: 'https://wa.me/966123456789', // Replace with actual number
+        url: 'https://wa.me/966575808772',
         color: 'bg-green-500',
         hoverColor: 'hover:bg-green-600',
     },

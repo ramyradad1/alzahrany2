@@ -54,7 +54,7 @@ export const Footer: React.FC<FooterProps> = ({ t, lang, content }) => {
                             </li>
                             <li className="flex gap-3 items-center">
                                 <Phone className="w-5 h-5 text-cyan-500 shrink-0" />
-                                <span dir="ltr">+966 12 345 6789</span>
+                                <span dir="ltr">+966 57 581 8827</span>
                             </li>
                             <li className="flex gap-3 items-center">
                                 <Mail className="w-5 h-5 text-cyan-500 shrink-0" />
