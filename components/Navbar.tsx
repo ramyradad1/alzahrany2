@@ -355,7 +355,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Desktop Navigation - Absolutely Centered */}
-        <div className="hidden lg:flex items-center space-x-6 rtl:space-x-reverse absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
+        <div className="hidden lg:flex items-center space-x-6 rtl:space-x-reverse absolute left-1/2 top-0 h-full transform -translate-x-1/2">
           {menuItems.sort((a, b) => a.order - b.order).map(item => (
             <div
               key={item.id}
