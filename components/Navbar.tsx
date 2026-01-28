@@ -27,7 +27,7 @@ const DesktopDropdown: React.FC<{
 
   return (
     <div
-      className={`absolute ${depth === 0 ? 'top-full left-0 pt-2' : 'left-full top-0 pl-1'} z-50`}
+      className={`absolute ${depth === 0 ? 'top-full left-0 pt-2' : 'left-full top-0 pl-1'} z-[60]`}
     >
       {/* The actual dropdown card */}
       <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 py-2 min-w-[200px] animate-fadeIn max-h-[75vh] overflow-y-auto custom-scrollbar">
