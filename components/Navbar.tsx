@@ -162,11 +162,39 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [config, setConfig] = useState<NavbarConfig | null>(null);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const [searchResults, setSearchResults] = useState<{ products: Product[], categories: string[], partners: Partner[] } | null>(null);
+  const [searchResults, setSearchResults] = useState<{ products: Product[], categories: string[], partners: Partner[], menuItems: MenuItem[] } | null>(null);
   const [showSearchResults, setShowSearchResults] = useState(false);
 
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Default menu items (Move up for search access)
+  const defaultMenuItems: MenuItem[] = [
+    { id: '1', label: 'Home', labelAr: 'الرئيسية', href: '/', order: 0 },
+    { id: '2', label: 'Products', labelAr: 'المنتجات', href: '/catalog', order: 1 },
+    { id: '3', label: 'Partners', labelAr: 'الشركاء', href: '/#partners', order: 2 },
+    { id: '4', label: 'About', labelAr: 'من نحن', href: '/about', order: 3 },
+  ];
+
+  const menuItems = config?.menu_items?.length ? config.menu_items : defaultMenuItems;
+
+  // Helper to recursively search menu items
+  const searchMenuRecursive = (items: MenuItem[], query: string): MenuItem[] => {
+    let results: MenuItem[] = [];
+    items.forEach(item => {
+      const matchEn = item.label?.toLowerCase().includes(query);
+      const matchAr = item.labelAr?.toLowerCase().includes(query);
+
+      if (matchEn || matchAr) {
+        results.push(item);
+      }
+
+      if (item.children && item.children.length > 0) {
+        results = [...results, ...searchMenuRecursive(item.children, query)];
+      }
+    });
+    return results;
+  };
 
   // Search Logic
   useEffect(() => {
@@ -196,14 +224,22 @@ export const Navbar: React.FC<NavbarProps> = ({
       p.name.toLowerCase().includes(query)
     ).slice(0, 2);
 
-    if (matchedProducts.length > 0 || matchedCategories.length > 0 || matchedPartners.length > 0) {
-      setSearchResults({ products: matchedProducts, categories: matchedCategories, partners: matchedPartners });
+    // Filter Menu Items (Sections)
+    const matchedMenuItems = searchMenuRecursive(menuItems, query).slice(0, 4);
+
+    if (matchedProducts.length > 0 || matchedCategories.length > 0 || matchedPartners.length > 0 || matchedMenuItems.length > 0) {
+      setSearchResults({
+        products: matchedProducts,
+        categories: matchedCategories,
+        partners: matchedPartners,
+        menuItems: matchedMenuItems
+      });
       setShowSearchResults(true);
     } else {
       setSearchResults(null);
       setShowSearchResults(false);
     }
-  }, [searchTerm, products, partners]);
+  }, [searchTerm, products, partners, config]);
 
   // Click outside to close search
   useEffect(() => {
@@ -265,15 +301,8 @@ export const Navbar: React.FC<NavbarProps> = ({
     }
   };
 
-  // Default menu items
-  const defaultMenuItems: MenuItem[] = [
-    { id: '1', label: 'Home', labelAr: 'الرئيسية', href: '/', order: 0 },
-    { id: '2', label: 'Products', labelAr: 'المنتجات', href: '/catalog', order: 1 },
-    { id: '3', label: 'Partners', labelAr: 'الشركاء', href: '/#partners', order: 2 },
-    { id: '4', label: 'About', labelAr: 'من نحن', href: '/about', order: 3 },
-  ];
-
-  const menuItems = config?.menu_items?.length ? config.menu_items : defaultMenuItems;
+  // Default menu items definition removed (moved up)
+  // const menuItems definition removed (moved up)
 
   const siteName = config
     ? (lang === 'en' ? config.site_name : config.site_name_ar)
@@ -428,6 +457,25 @@ export const Navbar: React.FC<NavbarProps> = ({
                         >
                           <Box className="w-3.5 h-3.5 text-cyan-500" />
                           {cat}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Configured Menu Items (Sections) */}
+                  {searchResults.menuItems && searchResults.menuItems.length > 0 && (
+                    <div className="p-2 border-b border-slate-100 dark:border-slate-700/50">
+                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider px-2 py-1 mb-1">{t.sections || 'Sections'}</h4>
+                      {searchResults.menuItems.map(item => (
+                        <button
+                          key={item.id}
+                          onClick={() => handleResultClick('menu', item)}
+                          className="w-full text-left px-3 py-2 rounded-lg hover:bg-cyan-50 dark:hover:bg-cyan-900/20 text-sm text-slate-700 dark:text-slate-200 flex items-center gap-2 transition-colors"
+                        >
+                          {/* Use provided icon or default based on depth/type implies logic but simpler to just use generic or item icon */}
+                          {item.icon ? <img src={item.icon} className="w-4 h-4 object-contain" alt="" /> : <ArrowRight className="w-3.5 h-3.5 text-cyan-500" />}
+                          <span>{lang === 'en' ? item.label : item.labelAr}</span>
+                          <span className="text-[10px] text-slate-400 ml-auto">{item.href}</span>
                         </button>
                       ))}
                     </div>
