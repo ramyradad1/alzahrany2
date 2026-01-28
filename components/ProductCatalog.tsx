@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Filter } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { Product, Translations, CatalogContent, Language } from '../types';
 import { ProductCard } from './ProductCard';
 
@@ -44,6 +45,17 @@ interface ProductCatalogProps {
 
 export const ProductCatalog: React.FC<ProductCatalogProps> = ({ products, t, searchQuery, onProductClick, content, lang = 'en' }) => {
     const [activeCategory, setActiveCategory] = useState<string>('All');
+
+    // START CHANGE: Sync category with URL
+    const location = useLocation();
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const catParam = params.get('category');
+        if (catParam) {
+            setActiveCategory(catParam);
+        }
+    }, [location.search]);
+    // END CHANGE
 
     const categories = useMemo(() => {
         const cats = new Set(products.map(p => p.category));

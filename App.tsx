@@ -217,7 +217,7 @@ const App = () => {
           {/* Public Routes */}
           <Route element={
             <>
-              <Navbar isDarkMode={isDarkMode} toggleTheme={toggleTheme} lang={lang} toggleLang={toggleLang} t={t} onSearch={() => { }} />
+              <Navbar isDarkMode={isDarkMode} toggleTheme={toggleTheme} lang={lang} toggleLang={toggleLang} t={t} onSearch={() => { }} products={products} partners={partners} setProductModalOpen={setProductModalOpen} />
               <main className="pt-16">
                 <Outlet />
               </main>
