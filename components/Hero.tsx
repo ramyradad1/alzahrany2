@@ -33,7 +33,7 @@ export const Hero: React.FC<HeroProps> = ({ t, lang, onShopNow, content }) => {
   const isDefaultTitle = !content?.title_en && !content?.title_ar;
 
   return (
-    <div className="relative bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white overflow-hidden min-h-[800px] flex items-center transition-colors duration-500 perspective-1000">
+    <div className="relative bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white overflow-hidden min-h-[600px] md:min-h-[800px] flex items-center transition-colors duration-500 perspective-1000">
 
       {/* Background Layer */}
       {content?.image ? (
@@ -83,29 +83,20 @@ export const Hero: React.FC<HeroProps> = ({ t, lang, onShopNow, content }) => {
           </div>
 
           <h1
-            className="text-6xl md:text-8xl lg:text-9xl font-black mb-10 leading-[1.1] tracking-tight animate-fade-in-up"
+            className="text-4xl md:text-6xl lg:text-8xl font-black mb-10 leading-[1.1] tracking-tight animate-fade-in-up"
             style={{ animationDelay: '0.1s' }}
           >
-            {isDefaultTitle ? (
-              <>
-                <span className="inline-block text-slate-900 dark:text-white">{lang === 'en' ? 'Science' : 'تطور'}</span>
-                <br className="hidden md:block" />
-                <span className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-blue-600 dark:from-cyan-400 dark:to-blue-500 pb-2">
-                  {lang === 'en' ? 'Evolved' : 'العلوم'}
-                </span>
-              </>
-            ) : (
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-cyan-800 to-cyan-600 dark:from-white dark:via-cyan-200 dark:to-cyan-500">
-                {title}
-              </span>
-            )}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-cyan-800 to-cyan-600 dark:from-white dark:via-cyan-200 dark:to-cyan-500">
+              Arkan-Labtech
+            </span>
           </h1>
 
           <p
-            className="text-xl md:text-2xl text-slate-600 dark:text-slate-300 mb-14 leading-relaxed max-w-3xl mx-auto animate-fade-in-up font-medium"
+            className="text-lg md:text-2xl text-slate-600 dark:text-slate-300 mb-10 md:mb-14 leading-relaxed max-w-3xl mx-auto animate-fade-in-up font-medium px-4"
             style={{ animationDelay: '0.2s' }}
           >
-            {subtitle}
+            <span className="block font-bold mb-4 tracking-wider text-slate-800 dark:text-cyan-400">CHEMICALS - GLASSWARE - EQUIPMENT</span>
+            A pioneer distributor in the field of Chemicals, Laboratory, and Medical Instruments as well as Consumables & Diagnostics in the Kingdom of Saudi Arabia.
           </p>
 
           <div
@@ -127,9 +118,7 @@ export const Hero: React.FC<HeroProps> = ({ t, lang, onShopNow, content }) => {
               <div className="absolute inset-0 bg-cyan-600 dark:bg-cyan-400 opacity-0 group-hover:opacity-10 dark:group-hover:opacity-20 transition-opacity duration-300"></div>
             </button>
 
-            <button className="px-10 py-5 bg-transparent border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-2xl font-bold text-lg transition-all hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white">
-              {lang === 'en' ? 'Learn More' : 'المزيد عنا'}
-            </button>
+
           </div>
         </div>
       </div>

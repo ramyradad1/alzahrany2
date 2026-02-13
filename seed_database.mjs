@@ -26,6 +26,7 @@ const STORAGE_BUCKET = 'products';
 const SOURCE_DIR = 'C:/Users/Ramy/OneDrive - TECHNIFY/Desktop/New folder/Website';
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg', '.avif'];
 
+// Track active IDs to clean up stale data later
 const activeCategoryIds = new Set();
 const activeProductIds = new Set();
 
@@ -45,86 +46,24 @@ async function main() {
   }
 
   // Start processing root directory
+    // null parentId means root categories
   await processDirectory(SOURCE_DIR, null, 0);
 
-  // Cleanup Stale Data (Sync Logic)
+    // Cleanup Stale Data
   await deleteStaleData();
 
-  // Cleanup Empty Categories (Cleanup Logic)
+    // Cleanup Empty Categories
   await deleteEmptyCategories();
 
   console.log('✅ Sync and Cleanup complete!');
 }
 
 /**
- * Cleanup Empty Categories
- * Iteratively removes categories that have no children and no products
+ * Recursively process directories and files
+ * @param {string} currentPath - Absolute path on disk
+ * @param {number|null} parentId - Database ID of the parent category
+ * @param {number} depth - Recursion depth for logging indentation
  */
-async function deleteEmptyCategories() {
-    console.log('🧹 Scanning for empty categories to delete...');
-    let deletedCount = 0;
-    
-    // We loop because deleting a child might make the parent empty
-    let hasDeleted = true;
-    while (hasDeleted) {
-        hasDeleted = false;
-        
-        // Fetch all categories
-        const { data: cats } = await supabase.from('categories').select('id, name_en');
-        if (!cats) break;
-
-        // Fetch usage counts
-        // 1. Categories being used as parents
-        const { data: parents } = await supabase.from('categories').select('parent_id');
-        const parentIds = new Set(parents?.map(p => p.parent_id).filter(Boolean));
-
-        // 2. Categories having products
-        const { data: prods } = await supabase.from('products').select('category_id');
-        const productCatIds = new Set(prods?.map(p => p.category_id).filter(Boolean));
-
-        const emptyCats = cats.filter(c => !parentIds.has(c.id) && !productCatIds.has(c.id));
-        
-        if (emptyCats.length > 0) {
-            const idsToDelete = emptyCats.map(c => c.id);
-            console.log(`   Running cleanup pass: Deleting ${idsToDelete.length} empty categories...`);
-            const { error } = await supabase.from('categories').delete().in('id', idsToDelete);
-            
-            if (!error) {
-                deletedCount += idsToDelete.length;
-                hasDeleted = true; // Continue loop to check if parents became empty
-            } else {
-                console.error('   Error deleting categories:', error.message);
-            }
-        }
-    }
-    
-    if (deletedCount > 0) {
-        console.log(`✅ Total empty categories removed: ${deletedCount}`);
-    } else {
-        console.log(`✅ No empty categories found.`);
-    }
-}
-
-async function deleteStaleData() {
-    console.log('🧹 Removing stale data (items not in source folder)...');
-
-    // 1. Delete Stale Products
-    const { data: allProducts } = await supabase.from('products').select('id');
-    if (allProducts) {
-        const staleProducts = allProducts.filter(p => !activeProductIds.has(p.id));
-        if (staleProducts.length > 0) {
-            console.log(`❌ Deleting ${staleProducts.length} stale products...`);
-            await supabase.from('products').delete().in('id', staleProducts.map(p => p.id));
-        }
-    }
-
-    // 2. Delete Stale Categories
-    // Note: deleteEmptyCategories handles the structural cleanup. 
-    // This just removes ones that we explicitly didn't see in FS.
-    // However, if we delete a category here that has children (which are also stale), it might fail if constrained.
-    // The previous script's logic here was "best effort". 
-}
-
 async function processDirectory(currentPath, parentId, depth) {
   const items = fs.readdirSync(currentPath);
   const indent = '  '.repeat(depth);
@@ -134,41 +73,63 @@ async function processDirectory(currentPath, parentId, depth) {
     const stats = fs.statSync(itemPath);
 
     if (stats.isDirectory()) {
-      // Category
-      console.log(`${indent}📂 ${item}`);
+        // It's a Category (or Subcategory)
+        console.log(`${indent}📂 Processing Category: ${item}`);
+
       const categoryId = await upsertCategory(item, parentId);
       
       if (categoryId) {
           activeCategoryIds.add(categoryId);
+          // Recursively process children
           await processDirectory(itemPath, categoryId, depth + 1);
       }
 
     } else if (stats.isFile()) {
-      // Product
+        // It's a potential Product
       const ext = path.extname(item).toLowerCase();
       if (IMAGE_EXTENSIONS.includes(ext)) {
-          if (!parentId) continue;
-
-          const productName = path.parse(item).name;
-          
-          // DEDUPLICATION: Check if product exists first
-          const existingId = await findProduct(productName, parentId);
-          if (existingId) {
-            //   console.log(`${indent}   ⏭️ Exists: ${productName}`);
-              activeProductIds.add(existingId);
+          // If we are at root (depth 0), files might not belong to a category?
+          // Usually products are inside a category folder.
+          // If parentId is null, it means the image is at the root of 'Website' folder.
+          // Depending on logic, we might skip or assign to a default.
+          // For now, let's assume valid products must have a category (parentId).
+          if (!parentId) {
+              console.warn(`${indent}⚠️ Skipping file at root (no category): ${item}`);
               continue;
           }
 
-          // If new, upload image and insert
-          console.log(`${indent}   ✨ New Product: ${productName}`);
+          const productName = path.parse(item).name;
           
-          // Generate deterministic path for storage deduplication
-           // RelPath ensures uniqueness: Category/Sub/Image.jpg
+          console.log(`${indent}   🖼️ Found Product Image: ${item}`);
+
+          // 1. DEDUPLICATION: Check if product already exists in DB
+          // We check by name AND category_id to allow same name in different categories
+          let productId = await findProduct(productName, parentId);
+
+          if (productId) {
+              console.log(`${indent}      Example: Product entry exists in DB. Linking ID...`);
+          } else {
+              console.log(`${indent}      ✨ Creating new Product entry...`);
+          }
+
+          // 2. Prepare for Storage Upload / Dedup
+          // RelPath: Category/Subcategory/Image.jpg
           const relativePath = path.relative(SOURCE_DIR, itemPath).replace(/\\/g, '/');
-          const publicUrl = await uploadImage(itemPath, relativePath);
+
+          // Check if image exists in storage BEFORE uploading
+          const publicUrl = await ensureImageInStorage(itemPath, relativePath, indent);
           
           if (publicUrl) {
-              const productId = await insertProduct(productName, publicUrl, parentId);
+              // Upsert/Insert product
+              if (!productId) {
+                  productId = await insertProduct(productName, publicUrl, parentId);
+              } else {
+                  // Optional: Update image URL if it changed? 
+                  // For now, assuming name matches, we keep it. 
+                  // But if we want to ensure URL is correct:
+                  // await updateProductImage(productId, publicUrl);
+              }
+
               if (productId) activeProductIds.add(productId);
           }
       }
@@ -177,6 +138,7 @@ async function processDirectory(currentPath, parentId, depth) {
 }
 
 async function upsertCategory(name, parentId) {
+    // Check existing by name AND parent_id to distinguish subcategories with same name
     let query = supabase.from('categories').select('id').eq('name_en', name);
     
     if (parentId) query = query.eq('parent_id', parentId);
@@ -187,7 +149,11 @@ async function upsertCategory(name, parentId) {
 
     const { data: inserted, error } = await supabase
         .from('categories')
-        .insert({ name_en: name, name_ar: name, parent_id: parentId })
+        .insert({
+            name_en: name,
+            name_ar: name,
+            parent_id: parentId
+        })
         .select()
         .single();
 
@@ -216,7 +182,7 @@ async function insertProduct(name, imageUrl, categoryId) {
             category_id: categoryId,
             image: imageUrl,
             description: '',
-            category: 'Legacy' // Placeholder
+            category: 'Legacy' // Placeholder to satisfy constraints if any
         })
         .select()
         .single();
@@ -228,27 +194,46 @@ async function insertProduct(name, imageUrl, categoryId) {
     return inserted.id;
 }
 
-async function uploadImage(filePath, storagePath) {
-    const fileContent = fs.readFileSync(filePath);
-    
-    // Check if exists by trying to upload with upsert: false
-    // If it fails with Duplicate, we just get the URL.
-    
-    // NOTE: Supabase Storage 'upload' with upsert:false throws error if exists.
-    // We catch it to implement "skip if exists".
-    
-    const { error: uploadError } = await supabase.storage
+/**
+ * Checks if image exists in storage. If not, uploads it.
+ * Returns public URL.
+ */
+async function ensureImageInStorage(localPath, storagePath, indent) {
+    // Check existence by listing the folder in bucket
+    const folder = path.dirname(storagePath).replace(/\\/g, '/');
+    const filename = path.basename(storagePath);
+
+    // List files in the folder (bucket, path, options)
+    // Note: 'path' in list() acts as a prefix folder
+    const { data: files, error: listError } = await supabase.storage
         .from(STORAGE_BUCKET)
-        .upload(storagePath, fileContent, {
-            contentType: getMimeType(filePath),
-            upsert: false // Don't overwrite
+        .list(folder === '.' ? '' : folder, {
+            limit: 1000,
+            search: filename
         });
 
-    if (uploadError && !uploadError.message.includes('already exists') && !uploadError.message.includes('Duplicate')) {
-        console.error(`   ⚠️ Upload error (${storagePath}):`, uploadError.message);
-        // Fallback: try to proceed anyway if it's just a "duplicate" error that wasn't caught by message check
-        // but for safety, return null if it's a real error.
-        // Actually, let's assume if it fails it might be there.
+    let exists = false;
+    if (files && files.length > 0) {
+        // Exact match check
+        exists = files.some(f => f.name === filename);
+    }
+
+    if (exists) {
+        console.log(`${indent}      ⏭️ Image exists in Storage. Skipping upload.`);
+    } else {
+        console.log(`${indent}      ⬆️ Uploading new image...`);
+        const fileContent = fs.readFileSync(localPath);
+        const { error: uploadError } = await supabase.storage
+            .from(STORAGE_BUCKET)
+            .upload(storagePath, fileContent, {
+                contentType: getMimeType(localPath),
+                upsert: false
+            });
+
+        if (uploadError) {
+            console.error(`${indent}      ❌ Upload failed: ${uploadError.message}`);
+            return null;
+        }
     }
 
     const { data: { publicUrl } } = supabase.storage
@@ -256,6 +241,74 @@ async function uploadImage(filePath, storagePath) {
         .getPublicUrl(storagePath);
 
     return publicUrl;
+}
+
+async function deleteEmptyCategories() {
+    console.log('🧹 Scanning for empty categories to delete...');
+    let deletedCount = 0;
+
+    // We loop because deleting a child might make the parent empty
+    let hasDeleted = true;
+    while (hasDeleted) {
+        hasDeleted = false;
+
+        // Fetch all categories
+        const { data: cats } = await supabase.from('categories').select('id, name_en');
+        if (!cats) break;
+
+        // Fetch usage counts
+        // 1. Categories being used as parents
+        const { data: parents } = await supabase.from('categories').select('parent_id');
+        const parentIds = new Set(parents?.map(p => p.parent_id).filter(Boolean));
+
+        // 2. Categories having products
+        const { data: prods } = await supabase.from('products').select('category_id');
+        const productCatIds = new Set(prods?.map(p => p.category_id).filter(Boolean));
+
+        const emptyCats = cats.filter(c => !parentIds.has(c.id) && !productCatIds.has(c.id));
+
+        if (emptyCats.length > 0) {
+            const idsToDelete = emptyCats.map(c => c.id);
+            // console.log(`   Running cleanup pass: Deleting ${idsToDelete.length} empty categories...`);
+            const { error } = await supabase.from('categories').delete().in('id', idsToDelete);
+
+            if (!error) {
+                deletedCount += idsToDelete.length;
+                hasDeleted = true; // Continue loop to check if parents became empty
+            } else {
+                console.error('   Error deleting categories:', error.message);
+            }
+        }
+    }
+
+    if (deletedCount > 0) {
+        console.log(`✅ Total empty categories removed: ${deletedCount}`);
+    } else {
+        console.log(`✅ No empty categories found.`);
+    }
+}
+
+async function deleteStaleData() {
+    console.log('🧹 Removing stale data (items not in source folder)...');
+
+    // 1. Delete Stale Products (items in DB but not seen in this run)
+    // Note: This logic assumes we crawled EVERYTHING. If we only crawled a subfolder, 
+    // be careful. user said "comprehensive, system-wide update" so safe to assume full crawl.
+
+    const { data: allProducts } = await supabase.from('products').select('id');
+    if (allProducts) {
+        const staleProducts = allProducts.filter(p => !activeProductIds.has(p.id));
+        if (staleProducts.length > 0) {
+            console.log(`❌ Deleting ${staleProducts.length} stale products...`);
+            await supabase.from('products').delete().in('id', staleProducts.map(p => p.id));
+        } else {
+            console.log(`   No stale products found.`);
+        }
+    }
+
+    // 2. Stale Categories are handled by deleteEmptyCategories mostly, 
+    // but we could strictly check activeCategoryIds if we wanted to be more aggressive.
+    // For now, the structural cleanup is safer.
 }
 
 function getMimeType(filename) {

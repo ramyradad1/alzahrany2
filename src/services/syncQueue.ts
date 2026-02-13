@@ -27,6 +27,8 @@ export const addToSyncQueue = async (
   }
 };
 
+import { uploadImageToSupabase } from '../utils/storage';
+
 export const processSyncQueue = async () => {
   if (!navigator.onLine) return;
 
@@ -44,16 +46,44 @@ export const processSyncQueue = async () => {
       let newId: number | string | null = null;
       let response = null;
 
+      // Clone data to avoid mutating original queue item in memory before update
+      let payload = JSON.parse(JSON.stringify(item.data));
+
+      // --- HANDLE IMAGE UPLOADS ---
+      if (item.table === 'products' && (item.action === 'CREATE' || item.action === 'UPDATE')) {
+        if (payload.image && payload.image.startsWith('data:image')) {
+          const url = await uploadImageToSupabase(payload.image, 'products', 'uploads/products');
+          if (url) payload.image = url;
+        }
+        if (payload.images && Array.isArray(payload.images)) {
+          const uploadPromises = payload.images.map(async (img: string) => {
+            if (img.startsWith('data:image')) {
+              return await uploadImageToSupabase(img, 'products', 'uploads/products/gallery') || img;
+            }
+            return img;
+          });
+          payload.images = await Promise.all(uploadPromises);
+        }
+      }
+
+      if (item.table === 'partners' && (item.action === 'CREATE' || item.action === 'UPDATE')) {
+        if (payload.logo && payload.logo.startsWith('data:image')) {
+          const url = await uploadImageToSupabase(payload.logo, 'products', 'uploads/partners');
+          if (url) payload.logo = url;
+        }
+      }
+      // -----------------------------
+
       if (item.action === 'CREATE') {
          // Remove temp ID if present, let Supabase gen ID
          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-         const { id, ...payload } = item.data; 
-         response = await supabase.from(item.table).insert([payload]).select().single();
+        const { id, ...cleanPayload } = payload;
+        response = await supabase.from(item.table).insert([cleanPayload]).select().single();
          if (response.data) newId = response.data.id;
       } else if (item.action === 'UPDATE') {
-         response = await supabase.from(item.table).update(item.data).eq('id', item.data.id).select();
+        response = await supabase.from(item.table).update(payload).eq('id', payload.id).select();
       } else if (item.action === 'DELETE') {
-         response = await supabase.from(item.table).delete().eq('id', item.data.id).select();
+        response = await supabase.from(item.table).delete().eq('id', payload.id).select();
       }
 
       if (response && response.error) {
@@ -81,18 +111,49 @@ export const processSyncQueue = async () => {
 
                  // 3. Update any pending chained mutations
                  if (newId) {
-                     const pendingMutations = await db.sync_queue
+                   // Find pending items that need to be updated
+                   const pendingItems = await db.sync_queue
                         .where('status').equals('PENDING')
-                        .filter(i => i.table === item.table && i.data.id === item.localId)
-                        .toArray();
-                     
-                     if (pendingMutations.length > 0) {
-                         console.log(`[Sync] Updating ${pendingMutations.length} pending items with new ID ${newId}`);
-                         await Promise.all(pendingMutations.map(mutation => {
-                             const updatedData = { ...mutation.data, id: newId };
-                             return db.sync_queue.update(mutation.id!, { data: updatedData });
-                         }));
+                     .toArray(); // We have to scan because we can't index JSON fields easily in Dexie without custom indices
+
+                   const itemsToUpdate = pendingItems.filter(i => {
+                     // 1. Update same item mutations (e.g. invalidating previous updates to the temp ID)
+                     if (i.table === item.table && i.data.id === item.localId) return true;
+
+                     // 2. Update Foreign Keys
+                     // If we just created a Category (item.table === 'categories'), look for things referencing it
+                     if (item.table === 'categories') {
+                       // Products referencing this category
+                       if (i.table === 'products' && i.data.category_id === item.localId) return true;
+                       // Subcategories referencing this category
+                       if (i.table === 'categories' && i.data.parent_id === item.localId) return true;
                      }
+                     return false;
+                   });
+
+                   if (itemsToUpdate.length > 0) {
+                     console.log(`[Sync] Updating ${itemsToUpdate.length} pending items with new ID ${newId}`);
+                     await Promise.all(itemsToUpdate.map(mutation => {
+                       const updatedData = { ...mutation.data };
+
+                       // Update Primary Key match
+                       if (mutation.data.id === item.localId) {
+                         updatedData.id = newId;
+                       }
+
+                       // Update Foreign Key matches
+                       if (item.table === 'categories') {
+                         if (mutation.table === 'products' && mutation.data.category_id === item.localId) {
+                           updatedData.category_id = newId;
+                         }
+                         if (mutation.table === 'categories' && mutation.data.parent_id === item.localId) {
+                           updatedData.parent_id = newId;
+                         }
+                       }
+
+                       return db.sync_queue.update(mutation.id!, { data: updatedData });
+                     }));
+                   }
                  }
              });
 

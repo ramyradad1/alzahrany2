@@ -44,7 +44,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, t 
   const isLongDescription = product.description.length > 150;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity animate-fade-in"
@@ -52,18 +52,19 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, t 
       />
 
       {/* Modal Content */}
-      <div className="relative w-full max-w-5xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row animate-fade-in-up border border-slate-200 dark:border-slate-700 max-h-[90vh] md:max-h-[800px] text-left rtl:text-right">
+      <div className="relative w-full max-w-5xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row animate-fade-in-up border border-slate-200 dark:border-slate-700 max-h-[95vh] md:max-h-[85vh] text-left rtl:text-right">
 
         {/* Close Button Mobile */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 rtl:left-4 rtl:right-auto z-20 md:hidden p-2 bg-white/80 dark:bg-slate-800/80 rounded-full text-slate-500"
+          aria-label={t.cancel || "Close"}
         >
           <X className="w-6 h-6" />
         </button>
 
         {/* Left Side: Image Carousel */}
-        <div className="w-full md:w-1/2 bg-slate-100 dark:bg-slate-950 relative group h-64 md:h-auto overflow-hidden select-none">
+        <div className="w-full md:w-1/2 bg-slate-100 dark:bg-slate-950 relative group h-64 md:h-auto overflow-hidden select-none flex-shrink-0">
           {/* Image Container */}
           <div className="w-full h-full relative">
             {images.map((img, index) => (
@@ -87,6 +88,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, t 
               <button
                 onClick={(e) => { e.stopPropagation(); prevImage(); }}
                 className="absolute left-4 rtl:right-4 rtl:left-auto top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/20 hover:bg-black/40 backdrop-blur-md text-white transition-all opacity-0 group-hover:opacity-100 hover:scale-110"
+                aria-label="Previous image"
               >
                 <ChevronLeft className="w-6 h-6 rtl:hidden" />
                 <ChevronRight className="w-6 h-6 hidden rtl:block" />
@@ -95,6 +97,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, t 
               <button
                 onClick={(e) => { e.stopPropagation(); nextImage(); }}
                 className="absolute right-4 rtl:left-4 rtl:right-auto top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/20 hover:bg-black/40 backdrop-blur-md text-white transition-all opacity-0 group-hover:opacity-100 hover:scale-110"
+                aria-label="Next image"
               >
                 <ChevronRight className="w-6 h-6 rtl:hidden" />
                 <ChevronLeft className="w-6 h-6 hidden rtl:block" />
@@ -110,6 +113,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, t 
                         ? 'bg-white w-6'
                         : 'bg-white/50 w-2 hover:bg-white/80'
                       }`}
+                    aria-label={`View image ${idx + 1}`}
                   />
                 ))}
               </div>
@@ -132,6 +136,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, t 
             <button
               onClick={onClose}
               className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              aria-label={t.cancel || "Close"}
             >
               <X className="w-6 h-6" />
             </button>

@@ -5,54 +5,34 @@ import {
     Loader2, Check, AlertCircle, Image, Type, Link as LinkIcon,
     X, Upload
 } from 'lucide-react';
-
-const processImage = (file: File, callback: (base64: string) => void) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = (event) => {
-        const img = document.createElement('img');
-        img.src = event.target?.result as string;
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            const MAX_WIDTH = 200;
-            const MAX_HEIGHT = 200;
-            let width = img.width;
-            let height = img.height;
-
-            if (width > height) {
-                if (width > MAX_WIDTH) {
-                    height *= MAX_WIDTH / width;
-                    width = MAX_WIDTH;
-                }
-            } else {
-                if (height > MAX_HEIGHT) {
-                    width *= MAX_HEIGHT / height;
-                    height = MAX_HEIGHT;
-                }
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-            ctx?.drawImage(img, 0, 0, width, height);
-            callback(canvas.toDataURL('image/webp', 0.8)); // Convert to optimized WebP
-        };
-    };
-};
 import { NavbarConfig, MenuItem } from '../../types';
+
+import { uploadImageToSupabase } from '../../src/utils/storage';
+
+// Helper to validate and read file
+const processImageFile = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+    });
+};
 
 const DEFAULT_CONFIG: NavbarConfig = {
     logo_url: '',
     logo_size: 40,
+    logo_remove_background: false,
     favicon_url: '',
     favicon_size: 32,
     site_name: 'Alzahrany Trading',
     site_name_ar: 'الزهراني للتجارة',
     menu_items: [
         { id: '1', label: 'Home', labelAr: 'الرئيسية', href: '/', order: 0 },
-        { id: '2', label: 'Products', labelAr: 'المنتجات', href: '/catalog', order: 1, children: [] },
-        { id: '3', label: 'Partners', labelAr: 'الشركاء', href: '/#partners', order: 2 },
-        { id: '4', label: 'About', labelAr: 'من نحن', href: '/about', order: 3 },
+        { id: '2', label: 'Brands', labelAr: 'العلامات التجارية', href: '/#Brands', order: 1 },
+        { id: '3', label: 'Products', labelAr: 'المنتجات', href: '/catalog', order: 2, children: [] },
+        { id: '4', label: 'Partners', labelAr: 'الشركاء', href: '/#partners', order: 3 },
+        { id: '5', label: 'About', labelAr: 'من نحن', href: '/about', order: 4 },
     ]
 };
 
@@ -146,13 +126,8 @@ const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
                             <Image className="w-4 h-4 text-slate-400" />
                         )}
                     </button>
-
-                    {/* Modal for Icon Selection */}
-
                 </div>
 
-                {/* Backdrpop for closing */}
-                {/* Simplified: Using X button to close logic above for now to keep local state clean without huge refactor */}
 
                 {/* Add Sub-item */}
                 <button
@@ -208,7 +183,7 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState('');
     const [editingIcon, setEditingIcon] = useState<{ id: string, icon: string } | null>(null);
-    const [isExpanded, setIsExpanded] = useState(false);
+    const [uploadingIcon, setUploadingIcon] = useState(false);
 
     useEffect(() => {
         loadConfig();
@@ -226,6 +201,7 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
                 setConfig({
                     logo_url: data.logo_url || '',
                     logo_size: data.logo_size || 40,
+                    logo_remove_background: data.logo_remove_background || false,
                     favicon_url: data.favicon_url || '',
                     favicon_size: data.favicon_size || 32,
                     site_name: data.site_name || DEFAULT_CONFIG.site_name,
@@ -250,6 +226,7 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
                     id: 'main',
                     logo_url: config.logo_url,
                     logo_size: config.logo_size,
+                    logo_remove_background: config.logo_remove_background,
                     favicon_url: config.favicon_url,
                     favicon_size: config.favicon_size,
                     site_name: config.site_name,
@@ -263,6 +240,9 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
             setTimeout(() => setMessage(''), 3000);
         } catch (e: any) {
             setMessage('Error: ' + (e.message || 'Failed to save'));
+            if (e.message?.includes('column')) {
+                alert('Database schema error: ' + e.message + '\n\nPlease run the provided SQL script to fix the database.');
+            }
         }
         setSaving(false);
     };
@@ -440,20 +420,35 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
                                     src={config.logo_url}
                                     alt="Logo Preview"
                                     style={{ width: config.logo_size || 40 }}
-                                    className="object-contain bg-slate-50 dark:bg-slate-900 rounded p-1 border border-slate-200 dark:border-slate-700"
+                                    className={`object-contain bg-slate-50 dark:bg-slate-900 rounded p-1 border border-slate-200 dark:border-slate-700 ${config.logo_remove_background ? 'mix-blend-multiply dark:mix-blend-screen' : ''}`}
                                 />
-                                <div className="flex-1">
-                                    <label className="block text-xs font-medium text-slate-500 mb-2">
-                                        Logo Size: {config.logo_size || 40}px
-                                    </label>
-                                    <input
-                                        type="range"
-                                        min="20"
-                                        max="120"
-                                        value={config.logo_size || 40}
-                                        onChange={(e) => setConfig({ ...config, logo_size: parseInt(e.target.value) })}
-                                        className="w-full accent-cyan-500"
-                                    />
+                                <div className="flex-1 space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-medium text-slate-500 mb-2">
+                                            Logo Size: {config.logo_size || 40}px
+                                        </label>
+                                        <input
+                                            type="range"
+                                            min="20"
+                                            max="120"
+                                            value={config.logo_size || 40}
+                                            onChange={(e) => setConfig({ ...config, logo_size: parseInt(e.target.value) })}
+                                            className="w-full accent-cyan-500"
+                                        />
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            id="removeBg"
+                                            checked={config.logo_remove_background || false}
+                                            onChange={(e) => setConfig({ ...config, logo_remove_background: e.target.checked })}
+                                            className="w-4 h-4 rounded text-cyan-600 focus:ring-cyan-500 border-gray-300"
+                                        />
+                                        <label htmlFor="removeBg" className="text-sm text-slate-700 dark:text-slate-300 font-medium">
+                                            Remove Background (Blend Mode)
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         ) : (
@@ -664,14 +659,24 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
                                         type="file"
                                         accept="image/png,image/svg+xml,image/jpeg,image/webp"
                                         className="hidden"
-                                        onChange={(e) => {
+                                        onChange={async (e) => {
                                             const file = e.target.files?.[0];
                                             if (file) {
-                                                setLoading(true);
-                                                processImage(file, (base64) => {
-                                                    handleIconChange(base64);
-                                                    setLoading(false);
-                                                });
+                                                setUploadingIcon(true);
+                                                try {
+                                                    const base64 = await processImageFile(file);
+                                                    const url = await uploadImageToSupabase(base64, 'products', 'uploads/navbar');
+                                                    if (url) {
+                                                        handleIconChange(url);
+                                                    } else {
+                                                        alert('Failed to upload image. Please try again.');
+                                                    }
+                                                } catch (error) {
+                                                    console.error('Upload handling error:', error);
+                                                    alert('Error processing image.');
+                                                } finally {
+                                                    setUploadingIcon(false);
+                                                }
                                             }
                                         }}
                                     />
@@ -693,7 +698,7 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
                                 onClick={() => setEditingIcon(null)}
                                 className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-medium transition-colors shadow-lg shadow-cyan-500/20"
                             >
-                                Done
+                                {uploadingIcon ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Done'}
                             </button>
                         </div>
                     </div>

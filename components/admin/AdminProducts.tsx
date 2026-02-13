@@ -39,6 +39,19 @@ export const AdminProducts: React.FC<AdminProductsProps> = ({ products, onAdd, o
     // Fetch categories for dropdown
     const categories = useLiveQuery(() => db.categories.toArray()) || [];
 
+    // Helper to calculate depth for indentation
+    const getCategoryDepth = (cat: any, allCats: any[]): number => {
+        let depth = 0;
+        let parentId = cat.parent_id;
+        while (parentId) {
+            depth++;
+            const parent = allCats.find(c => c.id === parentId);
+            if (!parent) break;
+            parentId = parent.parent_id;
+        }
+        return depth;
+    };
+
     const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const finalPrice = formData.price === '' || formData.price === 0 ? undefined : Number(formData.price);
@@ -299,11 +312,18 @@ export const AdminProducts: React.FC<AdminProductsProps> = ({ products, onAdd, o
                                             className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none text-slate-900 dark:text-white transition-all text-left rtl:text-right"
                                         >
                                             <option value="">{lang === 'en' ? "Select Category" : "اختر الفئة"}</option>
-                                            {categories.map(cat => (
-                                                <option key={cat.id} value={cat.id}>
-                                                    {lang === 'ar' && cat.name_ar ? cat.name_ar : cat.name_en}
-                                                </option>
-                                            ))}
+                                            {categories.map(cat => {
+                                                // Simple flat list with visual hierarchy indentation could be easier than double dropdowns for improved UX?
+                                                // Or just group by parent?
+                                                // Let's do visual hierarchy for now as it's simpler and effective for < 100 categories.
+                                                const depth = getCategoryDepth(cat, categories);
+                                                const prefix = '\u00A0'.repeat(depth * 4); // Indentation
+                                                return (
+                                                    <option key={cat.id} value={cat.id}>
+                                                        {prefix}{lang === 'ar' && cat.name_ar ? cat.name_ar : cat.name_en}
+                                                    </option>
+                                                );
+                                            })}
                                         </select>
                                     </div>
                                 </div>

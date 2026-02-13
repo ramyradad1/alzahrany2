@@ -132,11 +132,42 @@ export const syncCategories = async () => {
     if (error) throw error;
 
     if (data) {
-        // For read-only/reference data, it's safer to clear and replace to avoid ID conflicts
-        // especially if the local DB has drifted or has temp IDs.
+      // 1. Get local pending changes
+      const pendingCreates = await db.sync_queue.where({ table: 'categories', action: 'CREATE' }).toArray();
+      const pendingUpdates = await db.sync_queue.where({ table: 'categories', action: 'UPDATE' }).toArray();
+
+      const pendingCreateIds = new Set(pendingCreates.map(i => i.data.id));
+      const pendingUpdateIds = new Set(pendingUpdates.map(i => i.data.id));
+
+      // 2. Identify stale local data (Deleted on server)
+      const serverIds = new Set(data.map(d => d.id));
+      const localIds = await db.categories.toCollection().primaryKeys();
+
+      const idsToDelete = localIds.filter(id => !serverIds.has(id) && !pendingCreateIds.has(id));
+
+      if (idsToDelete.length > 0) {
+        console.log(`Removing ${idsToDelete.length} stale categories from local DB`);
+        await db.categories.bulkDelete(idsToDelete);
+      }
+
+      // 3. Apply server updates (Skip if we have a pending local update)
+      const validServerData = data.filter(d => !pendingUpdateIds.has(d.id));
+
+      if (validServerData.length > 0) {
+      // Clear local cache to prevent duplicates if IDs mismatch or if clean slate is needed
+      // But we MUST preserve pending creations that are only local!
+
         await db.categories.clear();
-        await db.categories.bulkPut(data as Category[]);
-        console.log(`Synced ${data.length} categories to local DB`);
+        await db.categories.bulkPut(validServerData as Category[]);
+
+        // Re-apply optimistic updates from queue
+        if (pendingCreates.length > 0) {
+          const optimisticCategories = pendingCreates.map(p => ({ ...p.data, id: p.localId }));
+          await db.categories.bulkPut(optimisticCategories);
+        }
+
+        console.log(`Synced ${validServerData.length} categories to local DB`);
+      }
     }
   } catch (error) {
     console.error('Error syncing categories:', error);

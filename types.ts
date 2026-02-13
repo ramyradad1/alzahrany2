@@ -7,7 +7,8 @@ export interface Category {
   id: number;
   name_en: string;
   name_ar: string;
-  parent_id?: number;
+  parent_id?: number | null;
+  children?: Category[];
 }
 
 export interface Product {
@@ -242,6 +243,7 @@ export interface MenuItem {
 export interface NavbarConfig {
   logo_url: string;
   logo_size?: number; // Size in pixels (width), height auto
+  logo_remove_background?: boolean;
   favicon_url?: string;
   favicon_size?: number; // Size in pixels
   site_name: string;

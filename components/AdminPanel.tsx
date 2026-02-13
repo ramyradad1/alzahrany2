@@ -91,6 +91,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ t, lang }) => {
 
   const navItems = [
     { to: '/admin/products', icon: Package, label: t.portfolio },
+    { to: '/admin/categories', icon: LayoutGrid, label: t.categories || 'Categories' }, // Added Categories
     { to: '/admin/partners', icon: Users, label: t.managePartners },
     { to: '/admin/sections', icon: LayoutGrid, label: 'Sections' },
     { to: '/admin/navbar', icon: Settings, label: 'Navbar' },

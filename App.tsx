@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import React, { useState, useEffect, Suspense } from 'react';
+import { Routes, Route, Navigate, Outlet, useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { supabase } from './utils/supabase';
 import { db } from './src/db';
@@ -9,28 +9,41 @@ import { addToSyncQueue } from './src/services/syncQueue';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { About } from './components/About';
+import { ContactSection } from './components/ContactSection';
 import { ProductCatalog } from './components/ProductCatalog';
 import { Partners } from './components/Partners';
 import { CustomSection } from './components/CustomSection';
 import { ScrollToTop } from './components/ScrollToTop';
 import { ScrollToTopButton } from './components/ScrollToTopButton';
 import { SocialLinksWidget } from './components/SocialLinksWidget';
-import { AdminPanel } from './components/AdminPanel';
-import { AdminProducts } from './components/admin/AdminProducts';
-import { AdminPartners } from './components/admin/AdminPartners';
-import { AdminSections } from './components/admin/AdminSections';
-import { NavbarController } from './components/admin/NavbarController';
 import { SyncIndicator } from './components/admin/SyncIndicator';
 import { ProductModal } from './components/ProductModal';
 import { AboutPage } from './components/AboutPage';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Footer } from './components/Footer';
 import { BackgroundAnimation } from './components/BackgroundAnimation';
-import TodoPage from './components/TodoPage';
 import { translations } from './translations';
 import { Product, Partner, Section, Language, ProductFormData } from './types';
+import { Loader2 } from 'lucide-react';
+
+// Lazy Load Admin Components to reduce initial bundle size
+const AdminPanel = React.lazy(() => import('./components/AdminPanel').then(module => ({ default: module.AdminPanel })));
+const AdminProducts = React.lazy(() => import('./components/admin/AdminProducts').then(module => ({ default: module.AdminProducts })));
+const AdminCategories = React.lazy(() => import('./components/admin/AdminCategories').then(module => ({ default: module.AdminCategories })));
+const AdminPartners = React.lazy(() => import('./components/admin/AdminPartners').then(module => ({ default: module.AdminPartners })));
+const AdminSections = React.lazy(() => import('./components/admin/AdminSections').then(module => ({ default: module.AdminSections })));
+const NavbarController = React.lazy(() => import('./components/admin/NavbarController').then(module => ({ default: module.NavbarController })));
+const TodoPage = React.lazy(() => import('./components/TodoPage')); // Default export
+
+// Loading Fallback
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-[60vh]">
+    <Loader2 className="w-8 h-8 animate-spin text-cyan-600" />
+  </div>
+);
 
 const App = () => {
+  const navigate = useNavigate();
   const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof window !== 'undefined') return localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
     return false;
@@ -100,6 +113,18 @@ const App = () => {
           { id: 'footer', label: 'Footer', order: 4, is_visible: true, content: {} }
         ];
         await db.sections.bulkPut(defaults);
+      } else {
+        // Migration: Ensure contact_form exists
+        const contactFormExists = await db.sections.get('contact_form');
+        if (!contactFormExists) {
+          await db.sections.add({
+            id: 'contact_form',
+            label: 'Contact Form',
+            order: 5,
+            is_visible: true,
+            content: {}
+          });
+        }
       }
 
     } catch (error) {
@@ -243,59 +268,64 @@ const App = () => {
 
         {productModalOpen && <ProductModal product={productModalOpen} onClose={() => setProductModalOpen(null)} t={t} />}
 
-        <Routes>
-          {/* Admin Routes */}
-          <Route path="/admin" element={<AdminPanel t={t} lang={lang} />}>
-            <Route index element={<Navigate to="products" replace />} />
-            <Route path="products" element={<AdminProducts products={products} onAdd={handleAddProduct} onEdit={handleEditProduct} onDelete={handleDeleteProduct} t={t} lang={lang} />} />
-            <Route path="partners" element={<AdminPartners partners={partners} onAddPartner={handleAddPartner} onDeletePartner={handleDeletePartner} t={t} />} />
-            <Route path="sections" element={<AdminSections sections={sections} onUpdateSections={handleUpdateSections} t={t} />} />
-            <Route path="navbar" element={<NavbarController t={t} />} />
-          </Route>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            {/* Admin Routes */}
+            <Route path="/admin" element={<AdminPanel t={t} lang={lang} />}>
+              <Route index element={<Navigate to="products" replace />} />
+              <Route path="products" element={<AdminProducts products={products} onAdd={handleAddProduct} onEdit={handleEditProduct} onDelete={handleDeleteProduct} t={t} lang={lang} />} />
+              <Route path="categories" element={<AdminCategories lang={lang} />} />
+              <Route path="partners" element={<AdminPartners partners={partners} onAddPartner={handleAddPartner} onDeletePartner={handleDeletePartner} t={t} />} />
+              <Route path="sections" element={<AdminSections sections={sections} onUpdateSections={handleUpdateSections} t={t} />} />
+              <Route path="navbar" element={<NavbarController t={t} />} />
+            </Route>
 
-          {/* Public Routes */}
-          <Route element={
-            <>
-              <Navbar isDarkMode={isDarkMode} toggleTheme={toggleTheme} lang={lang} toggleLang={toggleLang} t={t} onSearch={() => { }} products={products} partners={partners} setProductModalOpen={setProductModalOpen} />
-              <main className="pt-16">
-                <Outlet />
-              </main>
-              <Footer t={t} lang={lang} content={getSection('footer')?.content} />
-              <ScrollToTop />
-              <ScrollToTopButton />
-              <SocialLinksWidget />
-            </>
-          }>
-            <Route path="/" element={
+            {/* Public Routes */}
+            <Route element={
               <>
-                {sections.filter(s => s.is_visible).map((section) => {
-                  try {
-                    switch (section.id) {
-                      case 'hero':
-                        return <Hero key={section.id} t={t} lang={lang} onShopNow={() => document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' })} content={section.content} />;
-                      case 'about':
-                        return <About key={section.id} t={t} lang={lang} content={section.content} />;
-                      case 'catalog':
-                        return <ProductCatalog key={section.id} t={t} searchQuery="" onProductClick={setProductModalOpen} content={section.content} lang={lang} />;
-                      case 'partners':
-                        return <Partners key={section.id} partners={partners} title={t.partners} content={section.content} lang={lang} />;
-                      case 'footer':
-                        return null; // Footer is rendered separately in layout wrapper
-                      default:
-                        return <CustomSection key={section.id} section={section} />;
-                    }
-                  } catch (err) {
-                    console.error(`Error rendering section ${section.id}:`, err);
-                    return <div key={section.id} className="p-4 text-red-500">Error rendering section {section.id}</div>;
-                  }
-                })}
+                <Navbar isDarkMode={isDarkMode} toggleTheme={toggleTheme} lang={lang} toggleLang={toggleLang} t={t} onSearch={() => { }} products={products} partners={partners} setProductModalOpen={setProductModalOpen} />
+                <main className="pt-16">
+                  <Outlet />
+                </main>
+                <Footer t={t} lang={lang} content={getSection('footer')?.content} />
+                <ScrollToTop />
+                <ScrollToTopButton />
+                <SocialLinksWidget />
               </>
-            } />
-            <Route path="/about" element={<AboutPage t={t} content={getSection('about')?.content} lang={lang} />} />
-            <Route path="/catalog" element={<div className="pt-8"><ProductCatalog t={t} searchQuery="" onProductClick={setProductModalOpen} content={getSection('catalog')?.content} lang={lang} /></div>} />
-            <Route path="/todos" element={<TodoPage />} />
-          </Route>
-        </Routes>
+            }>
+              <Route path="/" element={
+                <>
+                  {sections.filter(s => s.is_visible).map((section) => {
+                    try {
+                      switch (section.id) {
+                        case 'hero':
+                          return <Hero key={section.id} t={t} lang={lang} onShopNow={() => navigate('/catalog')} content={section.content} />;
+                        case 'about':
+                          return <About key={section.id} t={t} lang={lang} content={section.content} />;
+                        case 'catalog':
+                          return <ProductCatalog key={section.id} t={t} searchQuery="" onProductClick={setProductModalOpen} content={section.content} lang={lang} />;
+                        case 'partners':
+                          return <Partners key={section.id} partners={partners} title={t.partners} content={section.content} lang={lang} />;
+                        case 'contact_form':
+                          return <ContactSection key={section.id} t={t} lang={lang} content={section.content} />;
+                        case 'footer':
+                          return null; // Footer is rendered separately in layout wrapper
+                        default:
+                          return <CustomSection key={section.id} section={section} />;
+                      }
+                    } catch (err) {
+                      console.error(`Error rendering section ${section.id}:`, err);
+                      return <div key={section.id} className="p-4 text-red-500">Error rendering section {section.id}</div>;
+                    }
+                  })}
+                </>
+              } />
+              <Route path="/about" element={<AboutPage t={t} content={getSection('about')?.content} lang={lang} />} />
+              <Route path="/catalog" element={<div className="pt-8"><ProductCatalog t={t} searchQuery="" onProductClick={setProductModalOpen} content={getSection('catalog')?.content} lang={lang} /></div>} />
+              <Route path="/todos" element={<TodoPage />} />
+            </Route>
+          </Routes>
+        </Suspense>
       </div>
     </ErrorBoundary>
   );

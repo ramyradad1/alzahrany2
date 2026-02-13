@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../src/db';
 import { processSyncQueue } from '../../src/services/syncQueue';
+import { syncAll } from '../../src/services/dbSync';
 
 export const SyncIndicator = () => {
     const pendingCount = useLiveQuery(() => db.sync_queue.where('status').equals('PENDING').count());
@@ -45,6 +46,29 @@ export const SyncIndicator = () => {
                     </button>
                 </div>
             ) : null}
+
+            <div className="pt-1 border-t border-slate-200 dark:border-slate-700 mt-1">
+                <button
+                    onClick={async () => {
+                        try {
+                            const btn = document.getElementById('resync-btn');
+                            if (btn) btn.classList.add('animate-spin');
+                            await syncAll();
+                            alert('Sync complete!');
+                        } catch (e) {
+                            alert('Sync failed');
+                            console.error(e);
+                        } finally {
+                            const btn = document.getElementById('resync-btn');
+                            if (btn) btn.classList.remove('animate-spin');
+                        }
+                    }}
+                    className="text-xs text-slate-500 hover:text-cyan-600 flex items-center gap-1 w-full justify-end"
+                >
+                    <svg id="resync-btn" className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                    Resync All
+                </button>
+            </div>
         </div>
     );
 };

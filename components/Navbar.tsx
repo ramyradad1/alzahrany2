@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useCategoryTree } from '../src/hooks/useCategoryTree';
 import { CachedImage } from '../components/common/CachedImage';
 import { Lock, Moon, Sun, Globe, Search, Menu, X, ChevronDown, ChevronRight, Package, Box, Users, ArrowRight } from 'lucide-react';
 import { Language, Translations, MenuItem, NavbarConfig, Product, Partner } from '../types';
@@ -215,15 +216,19 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: '4', label: 'About', labelAr: 'من نحن', href: '/about', order: 3 },
   ], []);
 
-  // Memoized menu items to inject partners
+  // Fetch Category Tree
+  const categoryTree = useCategoryTree();
+
+  // Memoized menu items to inject partners & categories
   const menuItems = useMemo(() => {
     const baseItems = config?.menu_items?.length ? config.menu_items : defaultMenuItems;
 
-    // If we have partners, inject them into the Partners menu item
+    // Deep clone to avoid mutation
+    const items = JSON.parse(JSON.stringify(baseItems));
+
+    // 1. Inject Partners
     if (partners && partners.length > 0) {
-      // Deep clone to avoid mutation
-      const items = JSON.parse(JSON.stringify(baseItems));
-      const partnersItem = items.find((i: MenuItem) => i.id === '3' || i.label === 'Partners' || i.labelAr === 'الشركاء');
+      const partnersItem = items.find((i: MenuItem) => i.id === '3' || i.label === 'Partners' || i.labelAr === 'الشركاء' || i.href === '/#partners');
 
       if (partnersItem) {
         partnersItem.children = [
@@ -238,11 +243,30 @@ export const Navbar: React.FC<NavbarProps> = ({
           }))
         ];
       }
-      return items;
     }
 
-    return baseItems;
-  }, [config, defaultMenuItems, partners]);
+    // 2. Inject Categories into "Products"
+    if (categoryTree && categoryTree.length > 0) {
+      const productsItem = items.find((i: MenuItem) => i.id === '2' || i.label === 'Products' || i.labelAr === 'المنتجات' || i.href === '/catalog');
+      if (productsItem) {
+        // If there are existing static children, maybe keep them? 
+        // Usually we want to replace or append. Let's append if any exist, or just set.
+        // Since we want the hierarchy to be the main thing:
+        productsItem.children = categoryTree;
+      }
+
+      // 3. Inject "Brands" category into "Brands" menu item
+      const brandsCategory = categoryTree.find(c => c.label === 'Brands' || c.label === 'brands');
+      if (brandsCategory && brandsCategory.children) {
+        const brandsMenuItem = items.find((i: MenuItem) => i.label === 'Brands' || i.labelAr === 'الماركات' || i.labelAr === 'Brands'); // labelAr might be Brands too if not translated
+        if (brandsMenuItem) {
+          brandsMenuItem.children = brandsCategory.children;
+        }
+      }
+    }
+
+    return items;
+  }, [config, defaultMenuItems, partners, categoryTree]);
 
   // Helper to recursively search menu items
   const searchMenuRecursive = (items: MenuItem[], query: string): MenuItem[] => {
@@ -372,9 +396,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   // Default menu items definition removed (moved up)
   // const menuItems definition removed (moved up)
 
-  const siteName = config
-    ? (lang === 'en' ? config.site_name : config.site_name_ar)
-    : (lang === 'en' ? 'Arkan Lab' : 'أركان لاب');
+  const siteName = "Arkan-Labtech";
 
   const handleNavigation = (href: string) => {
     setIsMobileMenuOpen(false);
@@ -430,7 +452,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-white/70 dark:bg-slate-950/70 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/50 transition-all duration-300 supports-[backdrop-filter]:bg-white/60">
-      <div className="relative w-full px-4 lg:px-8 h-[72px] flex items-center gap-6 mx-auto max-w-[1920px]">
+      <div className="relative w-full px-4 lg:px-2 xl:px-8 h-[72px] flex items-center gap-2 lg:gap-4 xl:gap-6 mx-auto max-w-[1920px]">
 
         {/* Logo Section - Flex Shrink 0 to prevent crushing */}
         <div
@@ -443,19 +465,16 @@ export const Navbar: React.FC<NavbarProps> = ({
               src={config.logo_url}
               alt="Logo"
               style={{ width: config.logo_size || 40, height: 'auto' }}
-              className="object-contain group-hover:scale-105 transition-transform duration-300"
+              className={`object-contain group-hover:scale-105 transition-transform duration-300 ${config.logo_remove_background ? 'mix-blend-multiply dark:mix-blend-screen' : ''}`}
             />
           )}
-          <span className="font-bold text-xl sm:text-2xl tracking-tight text-slate-900 dark:text-white font-['Cairo']">
-            {siteName}
-          </span>
         </div>
 
         {/* Desktop Navigation - Flexible Center */}
         {/* We use flex-1 to take up available space and justify-center to center the menu */}
         {/* If space becomes too tight, it will simply shrink the gap, but NEVER overlap */}
         <div className="hidden lg:flex flex-1 justify-center items-center h-full min-w-0">
-          <div className="flex items-center space-x-1 xl:space-x-6 rtl:space-x-reverse h-full whitespace-nowrap">
+          <div className="flex items-center space-x-1 lg:space-x-1 xl:space-x-6 rtl:space-x-reverse h-full whitespace-nowrap">
             {/* Reduced base space-x to 1 (4px) and xl to 6 (24px) to adapt better to smaller screens */}
             {menuItems.sort((a, b) => a.order - b.order).map(item => (
               <div
@@ -473,7 +492,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 <button
                   onClick={() => handleNavigation(item.href)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[14px] xl:text-[15px] font-medium transition-all duration-200 ${isActive(item.href)
+                  className={`flex items-center gap-2 px-2 lg:px-2 xl:px-3 py-2 rounded-lg text-[14px] xl:text-[15px] font-medium transition-all duration-200 ${isActive(item.href)
                     ? 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-400'
                     : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
                     }`}
@@ -513,7 +532,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center gap-3 flex-shrink-0 justify-end ml-auto">
           {/* Search */}
           {!location.pathname.startsWith('/admin') && (
-            <div className="relative hidden lg:block w-60 group" onClick={e => e.stopPropagation()}>
+            <div className="relative hidden lg:block w-48 xl:w-60 group" onClick={e => e.stopPropagation()}>
               <div className="absolute inset-y-0 left-0 rtl:right-0 rtl:left-auto pl-3 rtl:pr-3 flex items-center pointer-events-none">
                 <Search className="h-4 w-4 text-slate-400 group-focus-within:text-cyan-500 transition-colors" />
               </div>

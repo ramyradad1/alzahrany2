@@ -12,10 +12,16 @@ interface AdminSectionEditorProps {
     t: Translations;
 }
 
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../src/db';
+
 // Generic Simple Text Editor (for Catalog & Partners)
 const SimpleTextEditor: React.FC<{ section: Section, onUpdate: (s: Section) => void }> = ({ section, onUpdate }) => {
     const [content, setContent] = React.useState<any>(section.content || {});
     const [loading, setLoading] = React.useState(false);
+
+    // Fetch categories for Catalog section
+    const categories = useLiveQuery(() => db.categories.toArray()) || [];
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -54,6 +60,28 @@ const SimpleTextEditor: React.FC<{ section: Section, onUpdate: (s: Section) => v
                         onChange={e => setContent({ ...content, subtitle_en: e.target.value })}
                         className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none resize-none"
                     />
+
+                    {/* Category Selector for Catalog */}
+                    {section.id === 'catalog' && (
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                Default Category
+                            </label>
+                            <select
+                                value={content.selectedCategory || 'All'}
+                                onChange={e => setContent({ ...content, selectedCategory: e.target.value })}
+                                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none"
+                            >
+                                <option value="All">All Categories</option>
+                                {categories.map(cat => (
+                                    <option key={cat.id} value={cat.name_en}>
+                                        {cat.name_en} / {cat.name_ar}
+                                    </option>
+                                ))}
+                            </select>
+                            <p className="text-xs text-slate-500 mt-1">This category will be selected by default.</p>
+                        </div>
+                    )}
                 </div>
                 <div className="space-y-4" dir="rtl">
                     <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">العنوان بالعربية</label>
