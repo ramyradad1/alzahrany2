@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { CachedImage } from '../components/common/CachedImage';
 import { Lock, Moon, Sun, Globe, Search, Menu, X, ChevronDown, ChevronRight, Package, Box, Users, ArrowRight } from 'lucide-react';
 import { Language, Translations, MenuItem, NavbarConfig, Product, Partner } from '../types';
@@ -207,15 +207,42 @@ export const Navbar: React.FC<NavbarProps> = ({
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Default menu items (Move up for search access)
-  const defaultMenuItems: MenuItem[] = [
+  // Default menu items
+  const defaultMenuItems = useMemo<MenuItem[]>(() => [
     { id: '1', label: 'Home', labelAr: 'الرئيسية', href: '/', order: 0 },
     { id: '2', label: 'Products', labelAr: 'المنتجات', href: '/catalog', order: 1 },
     { id: '3', label: 'Partners', labelAr: 'الشركاء', href: '/#partners', order: 2 },
     { id: '4', label: 'About', labelAr: 'من نحن', href: '/about', order: 3 },
-  ];
+  ], []);
 
-  const menuItems = config?.menu_items?.length ? config.menu_items : defaultMenuItems;
+  // Memoized menu items to inject partners
+  const menuItems = useMemo(() => {
+    const baseItems = config?.menu_items?.length ? config.menu_items : defaultMenuItems;
+
+    // If we have partners, inject them into the Partners menu item
+    if (partners && partners.length > 0) {
+      // Deep clone to avoid mutation
+      const items = JSON.parse(JSON.stringify(baseItems));
+      const partnersItem = items.find((i: MenuItem) => i.id === '3' || i.label === 'Partners' || i.labelAr === 'الشركاء');
+
+      if (partnersItem) {
+        partnersItem.children = [
+          ...(partnersItem.children || []),
+          ...partners.map(p => ({
+            id: `partner-${p.id}`,
+            label: p.name,
+            labelAr: p.name,
+            href: '/#partners',
+            icon: p.logo,
+            order: 0
+          }))
+        ];
+      }
+      return items;
+    }
+
+    return baseItems;
+  }, [config, defaultMenuItems, partners]);
 
   // Helper to recursively search menu items
   const searchMenuRecursive = (items: MenuItem[], query: string): MenuItem[] => {
