@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { CachedImage } from '../components/common/CachedImage';
 import { Lock, Moon, Sun, Globe, Search, Menu, X, ChevronDown, ChevronRight, Package, Box, Users, ArrowRight } from 'lucide-react';
 import { Language, Translations, MenuItem, NavbarConfig, Product, Partner } from '../types';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -36,8 +37,8 @@ const DesktopDropdown: React.FC<{
       : {};
 
   const className = depth === 0
-    ? `absolute top-full left-0 pt-2 z-[60]`
-    : `z-[60] ml-1`; // Added margin for separation
+    ? `absolute top-full left-0 pt-4 z-[60]`
+    : `z-[60] ml-2`;
 
   return (
     <div
@@ -45,40 +46,33 @@ const DesktopDropdown: React.FC<{
       style={style}
     >
       {/* The actual dropdown card */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 py-2 min-w-[200px] animate-fadeIn max-h-[75vh] overflow-y-auto custom-scrollbar">
+      <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 py-3 min-w-[220px] animate-fadeIn max-h-[75vh] overflow-y-auto custom-scrollbar ring-1 ring-slate-900/5 dark:ring-white/10">
         {items.sort((a, b) => a.order - b.order).map(item => (
           <div
             key={item.id}
-            className="relative"
+            className="relative px-2 mb-1 last:mb-0"
             onMouseEnter={(e) => {
               if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
-
-              // Calculate coordinates for child dropdown
               if (item.children?.length) {
                 const rect = e.currentTarget.getBoundingClientRect();
-                setCoords({
-                  top: rect.top,
-                  left: rect.right
-                });
+                setCoords({ top: rect.top, left: rect.right + 8 });
                 setOpenId(item.id);
               }
             }}
             onMouseLeave={() => {
-              hoverTimeoutRef.current = setTimeout(() => {
-                setOpenId(null);
-              }, 150);
+              hoverTimeoutRef.current = setTimeout(() => setOpenId(null), 150);
             }}
           >
             <button
               onClick={() => onNavigate(item.href)}
-              className="w-full px-4 py-2.5 text-left flex items-center justify-between text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors"
+              className="w-full px-3 py-2.5 text-left flex items-center justify-between text-[14px] font-medium text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-cyan-600 dark:hover:text-cyan-400 transition-all duration-200 group"
             >
-              <span className="flex items-center gap-2">
-                {item.icon && <img src={item.icon} alt="" className="w-5 h-5 object-contain" />}
+              <span className="flex items-center gap-3">
+                {item.icon && <CachedImage src={item.icon} alt="" className="w-5 h-5 object-contain opacity-70 group-hover:opacity-100 transition-opacity" />}
                 {lang === 'en' ? item.label : item.labelAr}
               </span>
               {item.children && item.children.length > 0 && (
-                <ChevronRight className="w-4 h-4 text-slate-400" />
+                <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-cyan-500 transition-colors" />
               )}
             </button>
 
@@ -143,12 +137,12 @@ const MobileAccordion: React.FC<{
               }`}>
               <button
                 onClick={() => onNavigate(item.href)}
-                className="flex-1 text-left px-4 py-3 font-medium flex items-center gap-3"
+                className="flex-1 text-left px-4 py-4 font-medium flex items-center gap-3 text-base active:bg-slate-100 dark:active:bg-slate-800/50"
               >
                 {item.icon ? (
-                  <img src={item.icon} alt="" className="w-5 h-5 object-contain" />
+                  <CachedImage src={item.icon} alt="" className="w-6 h-6 object-contain" />
                 ) : (
-                  <div className={`w-1.5 h-1.5 rounded-full transition-colors ${active ? 'bg-cyan-500' : 'bg-slate-300 dark:bg-slate-600'}`} />
+                    <div className={`w-2 h-2 rounded-full transition-colors ${active ? 'bg-cyan-500 shadow-[0_0_8px_rgba(6,182,212,0.6)]' : 'bg-slate-300 dark:bg-slate-600'}`} />
                 )}
                 {lang === 'en' ? item.label : item.labelAr}
               </button>
@@ -160,6 +154,7 @@ const MobileAccordion: React.FC<{
                     setOpenId(openId === item.id ? null : item.id);
                   }}
                   className={`p-3 transition-colors ${active ? 'text-cyan-600 dark:text-cyan-400' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
+                  aria-label={openId === item.id ? "Collapse" : "Expand"}
                 >
                   <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${openId === item.id ? 'rotate-180' : ''}`} />
                 </button>
@@ -352,7 +347,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const siteName = config
     ? (lang === 'en' ? config.site_name : config.site_name_ar)
-    : (lang === 'en' ? 'Alzahrany Trading' : 'الزهراني للتجارة');
+    : (lang === 'en' ? 'Arkan Lab' : 'أركان لاب');
 
   const handleNavigation = (href: string) => {
     setIsMobileMenuOpen(false);
@@ -407,8 +402,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
-      <div className="relative w-full px-6 lg:px-8 h-20 flex items-center gap-4 mx-auto max-w-[1920px]">
+    <nav className="fixed top-0 left-0 w-full z-50 bg-white/70 dark:bg-slate-950/70 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/50 transition-all duration-300 supports-[backdrop-filter]:bg-white/60">
+      <div className="relative w-full px-4 lg:px-8 h-[72px] flex items-center gap-6 mx-auto max-w-[1920px]">
 
         {/* Logo Section - Flex Shrink 0 to prevent crushing */}
         <div
@@ -417,14 +412,14 @@ export const Navbar: React.FC<NavbarProps> = ({
           title={t.tooltipHome}
         >
           {config?.logo_url && (
-            <img
+            <CachedImage
               src={config.logo_url}
               alt="Logo"
               style={{ width: config.logo_size || 40, height: 'auto' }}
               className="object-contain group-hover:scale-105 transition-transform duration-300"
             />
           )}
-          <span className="font-black text-xl tracking-tight hidden sm:block text-slate-800 dark:text-white">
+          <span className="font-bold text-2xl tracking-tight hidden sm:block text-slate-900 dark:text-white font-['Cairo']">
             {siteName}
           </span>
         </div>
@@ -456,7 +451,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
                     }`}
                 >
-                  {item.icon && <img src={item.icon} alt="" className="w-4 h-4 object-contain" />}
+                  {item.icon && <CachedImage src={item.icon} alt="" className="w-4 h-4 object-contain" />}
                   {lang === 'en' ? item.label : item.labelAr}
                   {item.children && item.children.length > 0 && (
                     <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${openDropdown === item.id ? 'rotate-180' : ''}`} />
@@ -497,7 +492,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
               <input
                 type="text"
-                className="block w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 border border-slate-200 dark:border-slate-700 rounded-full text-sm bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 outline-none transition-all shadow-sm"
+                className="block w-full pl-10 pr-4 rtl:pr-10 rtl:pl-4 py-2.5 border border-slate-200 dark:border-slate-700/50 rounded-full text-sm bg-slate-100/50 dark:bg-slate-800/50 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 outline-none transition-all shadow-sm hover:shadow-md hover:bg-white dark:hover:bg-slate-800"
                 placeholder={t.search}
                 value={searchTerm}
                 onChange={(e) => {
@@ -542,7 +537,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                           className="w-full text-left px-3 py-2 rounded-lg hover:bg-cyan-50 dark:hover:bg-cyan-900/20 text-sm text-slate-700 dark:text-slate-200 flex items-center gap-2 transition-colors"
                         >
                           {/* Use provided icon or default based on depth/type implies logic but simpler to just use generic or item icon */}
-                          {item.icon ? <img src={item.icon} className="w-4 h-4 object-contain" alt="" /> : <ArrowRight className="w-3.5 h-3.5 text-cyan-500" />}
+                          {item.icon ? <CachedImage src={item.icon} className="w-4 h-4 object-contain" alt="" /> : <ArrowRight className="w-3.5 h-3.5 text-cyan-500" />}
                           <span>{lang === 'en' ? item.label : item.labelAr}</span>
                           <span className="text-[10px] text-slate-400 ml-auto">{item.href}</span>
                         </button>
@@ -561,7 +556,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                           className="w-full text-left px-3 py-2 rounded-lg hover:bg-cyan-50 dark:hover:bg-cyan-900/20 text-sm text-slate-700 dark:text-slate-200 flex items-center gap-3 group/item transition-colors"
                         >
                           {prod.images?.[0] ? (
-                            <img src={prod.images[0]} alt={prod.name} className="w-8 h-8 rounded bg-white object-contain border border-slate-200" />
+                            <CachedImage src={prod.images[0]} alt={prod.name} className="w-8 h-8 rounded bg-white object-contain border border-slate-200" />
                           ) : (
                             <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-400">
                               <Package className="w-4 h-4" />
@@ -657,10 +652,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Mobile Search */}
           {!location.pathname.startsWith('/admin') && (
             <div className="relative mb-4">
-              <Search className="absolute left-3 rtl:right-3 top-2.5 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-4 rtl:right-4 top-3.5 h-5 w-5 text-slate-400" />
               <input
                 type="text"
-                className="block w-full pl-10 pr-4 rtl:pr-10 rtl:pl-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500"
+                className="block w-full pl-12 pr-4 rtl:pr-12 rtl:pl-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 text-base"
                 placeholder={t.search}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}

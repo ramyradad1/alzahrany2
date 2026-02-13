@@ -60,6 +60,10 @@ export const translations: Record<'en' | 'ar', Translations> = {
     category: "Category",
     price: "Price",
     actions: "Actions",
+
+    // Search headers
+    sections: "Sections",
+    products: "Products",
     save: "Save",
     cancel: "Cancel",
     name: "Name",
@@ -82,7 +86,7 @@ export const translations: Record<'en' | 'ar', Translations> = {
     trustedPartners: "Trusted by Industry Leaders",
 
     // Footer
-    footerAbout: "About Alzahrany Trading",
+    footerAbout: "About Arkan Lab",
     footerLinks: "Quick Links",
     footerContact: "Contact Info",
     footerNewsletter: "Newsletter",
@@ -122,7 +126,8 @@ export const translations: Record<'en' | 'ar', Translations> = {
 
     // Storage
     storageErrorMsg: "Unable to save changes to local storage. Check your browser settings.",
-    loadingError: "Failed to load saved data. Using default catalog."
+    loadingError: "Failed to load saved data. Using default catalog.",
+    priceOnRequest: "Price on Request"
   },
   ar: {
     navHome: "الرئيسية",
@@ -183,6 +188,10 @@ export const translations: Record<'en' | 'ar', Translations> = {
     category: "الفئة",
     price: "السعر",
     actions: "إجراءات",
+
+    // Search headers
+    sections: "الأقسام",
+    products: "المنتجات",
     save: "حفظ",
     cancel: "إلغاء",
     name: "الاسم",
@@ -205,7 +214,7 @@ export const translations: Record<'en' | 'ar', Translations> = {
     trustedPartners: "شركاء النجاح",
 
     // Footer
-    footerAbout: "عن الزهراني للتجارة",
+    footerAbout: "عن أركان لاب",
     footerLinks: "روابط سريعة",
     footerContact: "معلومات الاتصال",
     footerNewsletter: "النشرة البريدية",
@@ -245,6 +254,7 @@ export const translations: Record<'en' | 'ar', Translations> = {
 
     // Storage
     storageErrorMsg: "تعذر حفظ التغييرات. تحقق من إعدادات المتصفح.",
-    loadingError: "فشل تحميل البيانات المحفوظة. جارٍ استخدام الكتالوج الافتراضي."
+    loadingError: "فشل تحميل البيانات المحفوظة. جارٍ استخدام الكتالوج الافتراضي.",
+    priceOnRequest: "السعر عند الطلب"
   }
 };

@@ -1,5 +1,7 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef } from 'react';
 import { Package, Plus, Image as ImageIcon, Edit, Trash2, X, Upload, Loader2, Save, AlertTriangle } from 'lucide-react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../src/db';
 import { Product, ProductFormData, Translations, Language, Specification } from '../../types';
 
 interface AdminProductsProps {
@@ -23,7 +25,7 @@ const INITIAL_FORM_STATE: ProductFormData = {
 
 export const AdminProducts: React.FC<AdminProductsProps> = ({ products, onAdd, onEdit, onDelete, t, lang }) => {
     const [isSaving, setIsSaving] = useState(false);
-    const [uploadProgress, setUploadProgress] = useState(0);
+
 
     const [isEditing, setIsEditing] = useState<number | null>(null);
     const [isAdding, setIsAdding] = useState(false);
@@ -34,9 +36,8 @@ export const AdminProducts: React.FC<AdminProductsProps> = ({ products, onAdd, o
     const fileInputRef = useRef<HTMLInputElement>(null);
     const galleryInputRef = useRef<HTMLInputElement>(null);
 
-    const existingCategories = useMemo(() => {
-        return Array.from(new Set(products.map(p => p.category)));
-    }, [products]);
+    // Fetch categories for dropdown
+    const categories = useLiveQuery(() => db.categories.toArray()) || [];
 
     const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -47,17 +48,9 @@ export const AdminProducts: React.FC<AdminProductsProps> = ({ products, onAdd, o
             price: finalPrice,
             specifications: formData.specifications.filter(s => s.label.trim() !== '' || s.value.trim() !== '')
         };
+        // ... rest of submit
 
         setIsSaving(true);
-        setUploadProgress(0);
-
-        // Simulate progress - since we can't track actual JSON body upload easily
-        const interval = setInterval(() => {
-            setUploadProgress(prev => {
-                if (prev >= 90) return 90;
-                return prev + 5;
-            });
-        }, 200);
 
         try {
             if (isEditing !== null) {
@@ -67,17 +60,12 @@ export const AdminProducts: React.FC<AdminProductsProps> = ({ products, onAdd, o
                 await onAdd(cleanedFormData);
                 setIsAdding(false);
             }
-            setUploadProgress(100);
             setFormData(INITIAL_FORM_STATE);
         } catch (error) {
             console.error(error);
-            alert("An error occurred while saving.");
+            // Error is already alerted by parent, but we keep the form open so user doesn't lose data
         } finally {
-            clearInterval(interval);
-            setTimeout(() => {
-                setIsSaving(false);
-                setUploadProgress(0);
-            }, 500);
+            setIsSaving(false);
         }
     };
 
@@ -151,6 +139,7 @@ export const AdminProducts: React.FC<AdminProductsProps> = ({ products, onAdd, o
             name: product.name,
             price: product.price || '',
             category: product.category,
+            category_id: product.category_id,
             image: product.image,
             images: product.images || [product.image],
             description: product.description,
@@ -268,20 +257,7 @@ export const AdminProducts: React.FC<AdminProductsProps> = ({ products, onAdd, o
                             </div>
 
                             <form onSubmit={handleFormSubmit} className="space-y-4">
-                                {isSaving && (
-                                    <div className="mb-4">
-                                        <div className="flex justify-between text-xs mb-1 text-slate-600 dark:text-slate-300">
-                                            <span>Saving...</span>
-                                            <span>{uploadProgress}%</span>
-                                        </div>
-                                        <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
-                                            <div
-                                                className="bg-cyan-500 h-2 rounded-full transition-all duration-300 ease-out"
-                                                style={{ width: `${uploadProgress}%` }}
-                                            ></div>
-                                        </div>
-                                    </div>
-                                )}
+
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t.name}</label>
                                     <input
@@ -308,20 +284,27 @@ export const AdminProducts: React.FC<AdminProductsProps> = ({ products, onAdd, o
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t.category}</label>
-                                        <input
+                                        <select
                                             required
-                                            type="text"
-                                            list="categories-list"
-                                            value={formData.category}
-                                            onChange={e => setFormData({ ...formData, category: e.target.value })}
+                                            value={formData.category_id || ''}
+                                            onChange={e => {
+                                                const catId = Number(e.target.value);
+                                                const cat = categories.find(c => c.id === catId);
+                                                setFormData({
+                                                    ...formData,
+                                                    category_id: catId,
+                                                    category: cat ? (lang === 'ar' && cat.name_ar ? cat.name_ar : cat.name_en) : ''
+                                                });
+                                            }}
                                             className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none text-slate-900 dark:text-white transition-all text-left rtl:text-right"
-                                            placeholder={lang === 'en' ? "Select or Type..." : "اختر أو اكتب..."}
-                                        />
-                                        <datalist id="categories-list">
-                                            {existingCategories.map(cat => (
-                                                <option key={cat} value={cat} />
+                                        >
+                                            <option value="">{lang === 'en' ? "Select Category" : "اختر الفئة"}</option>
+                                            {categories.map(cat => (
+                                                <option key={cat.id} value={cat.id}>
+                                                    {lang === 'ar' && cat.name_ar ? cat.name_ar : cat.name_en}
+                                                </option>
                                             ))}
-                                        </datalist>
+                                        </select>
                                     </div>
                                 </div>
 
@@ -392,6 +375,14 @@ export const AdminProducts: React.FC<AdminProductsProps> = ({ products, onAdd, o
                                             ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-900/10 cursor-wait'
                                             : 'border-slate-300 dark:border-slate-600 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:border-cyan-500 dark:hover:border-cyan-500'
                                             }`}
+                                        role="button"
+                                        tabIndex={0}
+                                        aria-label="Upload product main image"
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                !isProcessingImage && fileInputRef.current?.click();
+                                            }
+                                        }}
                                     >
                                         <div className="space-y-1 text-center">
                                             {isProcessingImage ? (
@@ -417,16 +408,17 @@ export const AdminProducts: React.FC<AdminProductsProps> = ({ products, onAdd, o
                                                     <p className="text-xs text-slate-500 dark:text-slate-500">Max 1MB</p>
                                                 </>
                                             )}
-                                            <input
-                                                ref={fileInputRef}
-                                                type="file"
-                                                accept="image/*"
-                                                className="sr-only"
-                                                onChange={handleMainImageUpload}
-                                                disabled={isProcessingImage}
-                                            />
                                         </div>
                                     </div>
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        className="sr-only"
+                                        onChange={handleMainImageUpload}
+                                        disabled={isProcessingImage}
+                                        title="Upload product main image"
+                                    />
                                 </div>
 
                                 <div>
@@ -460,6 +452,7 @@ export const AdminProducts: React.FC<AdminProductsProps> = ({ products, onAdd, o
                                         className="sr-only"
                                         onChange={handleGalleryUpload}
                                         disabled={isProcessingImage}
+                                        title="Upload gallery images"
                                     />
                                 </div>
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import { CachedImage } from '../components/common/CachedImage';
 import { Partner, PartnersContent, Language } from '../types';
 
 interface PartnersProps {
@@ -49,7 +50,7 @@ export const Partners: React.FC<PartnersProps> = ({ partners, title, content, la
             >
               <div className="h-16 w-32 md:h-20 md:w-40 flex items-center justify-center">
                 {partner.logo ? (
-                  <img
+                  <CachedImage
                     src={partner.logo}
                     alt={partner.name}
                     className="max-h-full max-w-full object-contain grayscale-0"

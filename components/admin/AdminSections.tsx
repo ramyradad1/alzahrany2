@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Section, Translations } from '../../types';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Eye, EyeOff, Edit, ChevronDown, ChevronUp, Plus, Trash2, Loader2, Save } from 'lucide-react';
+import { GripVertical, Eye, EyeOff, Edit, ChevronUp, Plus, Trash2, Loader2, Save } from 'lucide-react';
 import { AdminSectionEditor } from './AdminSectionEditor';
-import { supabase } from '../../supabase';
+import { db } from '../../src/db';
+import { addToSyncQueue } from '../../src/services/syncQueue';
 
 interface AdminSectionsProps {
     sections: Section[];
@@ -91,13 +92,20 @@ const SortableSectionRow: React.FC<SortableSectionRowProps> = ({ section, onTogg
             )}
         </div>
     );
-}
+};
 
 export const AdminSections: React.FC<AdminSectionsProps> = ({ sections, onUpdateSections, t }) => {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [adding, setAdding] = useState(false);
     const [hasOrderChanged, setHasOrderChanged] = useState(false);
     const [savingOrder, setSavingOrder] = useState(false);
+
+    // Local state for drag-and-drop
+    const [localSections, setLocalSections] = useState<Section[]>(sections);
+
+    useEffect(() => {
+        setLocalSections(sections);
+    }, [sections]);
 
     const sensors = useSensors(
         useSensor(PointerSensor),
@@ -115,7 +123,7 @@ export const AdminSections: React.FC<AdminSectionsProps> = ({ sections, onUpdate
 
             // Update order property
             const updated = newSections.map((s, idx) => ({ ...s, order: idx }));
-            onUpdateSections(updated);
+            setLocalSections(updated); // Update local state for UI
             setHasOrderChanged(true);
         }
     };
@@ -123,20 +131,19 @@ export const AdminSections: React.FC<AdminSectionsProps> = ({ sections, onUpdate
     const handleSaveOrder = async () => {
         setSavingOrder(true);
         try {
-            // Update each section's order in database
-            const updates = sections.map((s, idx) =>
-                supabase.from('sections').update({ order: idx }).eq('id', s.id)
-            );
+            // Update each section's order in database via Dexie + SyncQueue
+            await db.transaction('rw', [db.sections, db.sync_queue], async () => {
+                const updates = localSections.map((s, idx) => {
+                    return Promise.all([
+                        db.sections.update(s.id, { order: idx }),
+                        addToSyncQueue('sections', 'UPDATE', { id: s.id, order: idx })
+                    ]);
+                });
+                await Promise.all(updates);
+            });
 
-            const results = await Promise.all(updates);
-            const hasError = results.some(r => r.error);
-
-            if (hasError) {
-                alert('Failed to save order. Please try again.');
-            } else {
-                setHasOrderChanged(false);
-                alert('Order saved successfully!');
-            }
+            setHasOrderChanged(false);
+            alert('Order saved successfully!');
         } catch (error) {
             console.error('Error saving order:', error);
             alert('Error saving order');
@@ -146,33 +153,32 @@ export const AdminSections: React.FC<AdminSectionsProps> = ({ sections, onUpdate
     };
 
     const handleToggleVisibility = async (id: string) => {
-        const section = sections.find(s => s.id === id);
+        const section = localSections.find(s => s.id === id);
         if (!section) return;
 
         const newVisibility = !section.is_visible;
 
-        // Update in database
-        const { error } = await supabase
-            .from('sections')
-            .update({ is_visible: newVisibility })
-            .eq('id', id);
-
-        if (error) {
-            alert('Failed to update visibility');
-            return;
+        try {
+            await db.sections.update(id, { is_visible: newVisibility });
+            await addToSyncQueue('sections', 'UPDATE', { id, is_visible: newVisibility });
+        } catch (error) {
+            console.error('Error updating visibility:', error);
+            alert('Error updating visibility');
         }
-
-        const updated = sections.map(s => s.id === id ? { ...s, is_visible: newVisibility } : s);
-        onUpdateSections(updated);
     };
 
     const handleEdit = (id: string) => {
         setEditingId(prev => prev === id ? null : id);
     };
 
-    const handleUpdateSection = (updatedSection: Section) => {
-        const newSections = sections.map(s => s.id === updatedSection.id ? updatedSection : s);
-        onUpdateSections(newSections);
+    const handleUpdateSection = async (updatedSection: Section) => {
+        try {
+            await db.sections.put(updatedSection);
+            await addToSyncQueue('sections', 'UPDATE', updatedSection);
+        } catch (error) {
+            console.error('Error updating section:', error);
+            alert('Failed to update section content');
+        }
     };
 
     const handleAddSection = async () => {
@@ -190,26 +196,28 @@ export const AdminSections: React.FC<AdminSectionsProps> = ({ sections, onUpdate
             }
         };
 
-        const { error } = await supabase.from('sections').insert([newSection]);
+        try {
+            await db.sections.add(newSection);
+            await addToSyncQueue('sections', 'CREATE', newSection, newId); // Type cast if needed, though ID is string here
 
-        if (error) {
-            console.error('Error creating section:', error);
-            alert('Failed to create section: ' + (error.message || JSON.stringify(error)));
-        } else {
-            onUpdateSections([...sections, newSection]);
             setEditingId(newId); // Auto-open editor
+        } catch (error) {
+            console.error('Error creating section:', error);
+            alert('Failed to create section');
+        } finally {
+            setAdding(false);
         }
-        setAdding(false);
     };
 
     const handleDeleteSection = async (id: string) => {
-        const { error } = await supabase.from('sections').delete().eq('id', id);
-        if (error) {
+        if (!window.confirm('Are you sure you want to delete this section?')) return;
+
+        try {
+            await db.sections.delete(id);
+            await addToSyncQueue('sections', 'DELETE', { id });
+        } catch (error) {
             console.error('Error deleting section:', error);
             alert('Failed to delete section');
-        } else {
-            const updated = sections.filter(s => s.id !== id);
-            onUpdateSections(updated);
         }
     };
 
@@ -257,11 +265,11 @@ export const AdminSections: React.FC<AdminSectionsProps> = ({ sections, onUpdate
                     onDragEnd={handleDragEnd}
                 >
                     <SortableContext
-                        items={sections.map(s => s.id)}
+                        items={localSections.map(s => s.id)}
                         strategy={verticalListSortingStrategy}
                     >
                         <div className="space-y-3">
-                            {sections.map((section) => (
+                            {localSections.map((section) => (
                                 <SortableSectionRow
                                     key={section.id}
                                     section={section}

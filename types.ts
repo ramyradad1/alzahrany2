@@ -3,11 +3,19 @@ export interface Specification {
   value: string;
 }
 
+export interface Category {
+  id: number;
+  name_en: string;
+  name_ar: string;
+  parent_id?: number;
+}
+
 export interface Product {
   id: number;
   name: string;
   price?: number;
-  category: string;
+  category: string; // Deprecated, kept for backward compatibility during migration
+  category_id?: number;
   image: string;
   images?: string[];
   description: string;
@@ -141,6 +149,10 @@ export interface Translations {
   logout: string;
   addItem: string;
   editItem: string;
+
+  // Search headers
+  sections: string;
+  products: string;
   noProducts: string;
   viewAll: string;
   support: string;
@@ -213,6 +225,7 @@ export interface Translations {
   // Storage
   storageErrorMsg: string;
   loadingError: string;
+  priceOnRequest: string;
 }
 
 export interface MenuItem {

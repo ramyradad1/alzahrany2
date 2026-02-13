@@ -69,7 +69,7 @@ export const About: React.FC<AboutProps> = ({ t, content, lang = 'en' }) => {
         </h2>
         <div className="h-1.5 w-24 bg-gradient-to-r from-cyan-500 to-blue-600 mx-auto rounded-full mb-8"></div>
         <p className="text-xl text-slate-600 dark:text-slate-300 leading-relaxed">
-          Since 2010, Alzahrany has been at the forefront of laboratory innovation, bridging the gap between traditional chemistry and modern digital precision.
+          Since 2010, Arkan Lab has been at the forefront of laboratory innovation, bridging the gap between traditional chemistry and modern digital precision.
         </p>
       </div>
 
@@ -178,7 +178,7 @@ export const About: React.FC<AboutProps> = ({ t, content, lang = 'en' }) => {
                 <div className="w-1 h-12 bg-cyan-500 rounded-full group-hover:h-16 transition-all duration-300"></div>
                 <div>
                   <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Email</p>
-                  <p className="font-medium group-hover:text-cyan-400 transition-colors">sales@alzahrany.com</p>
+                  <p className="font-medium group-hover:text-cyan-400 transition-colors">sales@arkan-lab.com</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 group">

@@ -4,7 +4,7 @@ import { Partner, Translations } from '../../types';
 
 interface AdminPartnersProps {
     partners: Partner[];
-    onAddPartner: (name: string, logo: string) => void;
+    onAddPartner: (name: string, logo: string) => Promise<void>;
     onDeletePartner: (id: number) => void;
     t: Translations;
 }
@@ -14,6 +14,8 @@ export const AdminPartners: React.FC<AdminPartnersProps> = ({ partners, onAddPar
     const [newPartnerLogo, setNewPartnerLogo] = useState('');
     const [isProcessingPartnerLogo, setIsProcessingPartnerLogo] = useState(false);
     const [fileError, setFileError] = useState('');
+
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const partnerLogoRef = useRef<HTMLInputElement>(null);
 
@@ -41,12 +43,19 @@ export const AdminPartners: React.FC<AdminPartnersProps> = ({ partners, onAddPar
         }
     };
 
-    const handlePartnerSubmit = (e: React.FormEvent) => {
+    const handlePartnerSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (newPartnerName && newPartnerLogo) {
-            onAddPartner(newPartnerName, newPartnerLogo);
-            setNewPartnerName('');
-            setNewPartnerLogo('');
+            setIsSubmitting(true);
+            try {
+                await onAddPartner(newPartnerName, newPartnerLogo);
+                setNewPartnerName('');
+                setNewPartnerLogo('');
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setIsSubmitting(false);
+            }
         }
     };
 
@@ -61,13 +70,15 @@ export const AdminPartners: React.FC<AdminPartnersProps> = ({ partners, onAddPar
                     </h3>
                     <form onSubmit={handlePartnerSubmit} className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t.partnerName}</label>
+                            <label htmlFor="partnerName" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t.partnerName}</label>
                             <input
+                                id="partnerName"
                                 required
                                 type="text"
                                 value={newPartnerName}
                                 onChange={(e) => setNewPartnerName(e.target.value)}
                                 className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none text-slate-900 dark:text-white"
+                                placeholder={t.partnerName}
                             />
                         </div>
 
@@ -77,6 +88,14 @@ export const AdminPartners: React.FC<AdminPartnersProps> = ({ partners, onAddPar
                                 onClick={() => !isProcessingPartnerLogo && partnerLogoRef.current?.click()}
                                 className={`flex items-center justify-center border-2 border-dashed rounded-lg p-4 transition-all cursor-pointer ${newPartnerLogo ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-900/20' : 'border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'
                                     }`}
+                                role="button"
+                                tabIndex={0}
+                                aria-label="Upload partner logo"
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        !isProcessingPartnerLogo && partnerLogoRef.current?.click();
+                                    }
+                                }}
                             >
                                 {isProcessingPartnerLogo ? (
                                     <Loader2 className="w-6 h-6 animate-spin text-cyan-500" />
@@ -88,14 +107,15 @@ export const AdminPartners: React.FC<AdminPartnersProps> = ({ partners, onAddPar
                                         <span className="text-xs text-slate-500">{t.uploadFile}</span>
                                     </div>
                                 )}
-                                <input
-                                    ref={partnerLogoRef}
-                                    type="file"
-                                    accept="image/*"
-                                    className="sr-only"
-                                    onChange={handlePartnerLogoUpload}
-                                />
                             </div>
+                            <input
+                                ref={partnerLogoRef}
+                                type="file"
+                                accept="image/*"
+                                className="sr-only"
+                                onChange={handlePartnerLogoUpload}
+                                title="Upload partner logo"
+                            />
                         </div>
 
                         {fileError && (
@@ -107,10 +127,10 @@ export const AdminPartners: React.FC<AdminPartnersProps> = ({ partners, onAddPar
 
                         <button
                             type="submit"
-                            disabled={!newPartnerName || !newPartnerLogo || isProcessingPartnerLogo}
-                            className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                            disabled={!newPartnerName || !newPartnerLogo || isProcessingPartnerLogo || isSubmitting}
+                            className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md flex justify-center items-center"
                         >
-                            {t.addPartner}
+                            {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : t.addPartner}
                         </button>
                     </form>
                 </div>

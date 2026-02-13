@@ -18,13 +18,13 @@ if (import.meta.env.DEV || !supabaseUrl || !supabaseKey) {
 
 if (!supabaseUrl || !supabaseKey) {
     console.error('❌ Missing Supabase credentials!');
-    console.error('Make sure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set in Vercel Environment Variables');
+    console.error('Make sure VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY are set in Vercel Environment Variables');
 }
 
-// Validate anon key format (should be a JWT starting with eyJ)
-if (supabaseKey && !supabaseKey.startsWith('eyJ')) {
-    console.warn('⚠️ Supabase anon key may be incorrect. It should start with "eyJ" (JWT format)');
-    console.warn('Get the correct key from: Supabase Dashboard > Settings > API > anon public key');
+// Validate key format
+if (supabaseKey && !supabaseKey.startsWith('eyJ') && !supabaseKey.startsWith('sb_publishable')) {
+    console.warn('⚠️ Supabase key may be incorrect. It should start with "eyJ" or "sb_publishable"');
+    console.warn('Check your Supabase project settings.');
 }
 
 export const supabase = createClient(

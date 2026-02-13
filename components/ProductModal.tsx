@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { CachedImage } from '../components/common/CachedImage';
 import { X, MessageCircle, CheckCircle2, ShieldCheck, Truck, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Product, Translations } from '../types';
 
@@ -71,7 +72,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, t 
                 className={`absolute inset-0 transition-opacity duration-500 ease-in-out ${index === currentImageIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
                   }`}
               >
-                <img
+                <CachedImage
                   src={img}
                   alt={`${product.name} view ${index + 1}`}
                   className="w-full h-full object-cover object-center"
