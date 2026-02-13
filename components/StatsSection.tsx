@@ -94,9 +94,8 @@ export const StatsSection: React.FC<StatsSectionProps> = ({ t }) => {
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-600/10 rounded-full blur-[80px] translate-y-1/3 -translate-x-1/4 pointer-events-none"></div>
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none"></div>
 
-        <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-8 divide-x-0 md:divide-x divide-slate-800/50">
+        <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-8 divide-x-0 md:divide-x divide-slate-800/50">
           <StatItem value={500} label={t.statProducts} suffix="+" trigger={inView} />
-          <StatItem value={30} label={t.statCountries} suffix="+" trigger={inView} />
           
           {/* Static rendering for non-numeric complex strings, or mapped to numeric if applicable. 
               Here we handle '24/7' and 'ISO' slightly differently visually to match style */}

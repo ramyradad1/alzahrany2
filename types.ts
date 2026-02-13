@@ -117,7 +117,6 @@ export interface Translations {
 
   // Stats
   statProducts: string;
-  statCountries: string;
   statSupport: string;
   statIso: string;
 

@@ -21,7 +21,6 @@ export const translations: Record<'en' | 'ar', Translations> = {
 
     // Stats
     statProducts: "Products",
-    statCountries: "Countries",
     statSupport: "Support",
     statIso: "ISO 9001:2015",
 
@@ -149,7 +148,6 @@ export const translations: Record<'en' | 'ar', Translations> = {
 
     // Stats
     statProducts: "منتج",
-    statCountries: "دولة",
     statSupport: "دعم فني",
     statIso: "ISO 9001:2015",
 
