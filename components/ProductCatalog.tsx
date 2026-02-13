@@ -202,38 +202,89 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({ t, searchQuery: 
                     {/* Pagination */}
                     {totalPages > 1 && (
                         <div className="flex justify-center items-center gap-2 mt-12 flex-wrap">
+                            {/* First Page */}
+                            <button
+                                onClick={() => setPage(0)}
+                                disabled={page === 0}
+                                aria-label="First Page"
+                                className="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors hidden sm:flex"
+                            >
+                                <span className="font-bold">1</span> &laquo;
+                            </button>
+
+                            {/* Previous */}
                             <button
                                 onClick={() => setPage(p => Math.max(0, p - 1))}
                                 disabled={page === 0}
                                 aria-label="Previous Page"
-                                className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors"
+                                className="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors"
                             >
                                 <ChevronLeft className="w-5 h-5" />
                             </button>
 
-                            {Array.from({ length: totalPages }, (_, i) => (
-                                <button
-                                    key={i}
-                                    onClick={() => setPage(i)}
-                                    className={`
-                                        w-10 h-10 rounded-lg font-bold transition-all
-                                        ${page === i
-                                            ? 'bg-cyan-600 text-white shadow-lg scale-105'
-                                            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-cyan-500 dark:hover:border-cyan-500'
-                                        }
-                                    `}
-                                >
-                                    {i + 1}
-                                </button>
-                            ))}
+                            {/* Page Numbers Window */}
+                            {(() => {
+                                const windowSize = 5;
+                                let startPage = Math.max(0, page - Math.floor(windowSize / 2));
+                                let endPage = startPage + windowSize;
 
+                                if (endPage > totalPages) {
+                                    endPage = totalPages;
+                                    startPage = Math.max(0, endPage - windowSize);
+                                }
+
+                                const pages = [];
+                                if (startPage > 0) {
+                                    pages.push('...');
+                                }
+
+                                for (let i = startPage; i < endPage; i++) {
+                                    pages.push(i);
+                                }
+
+                                if (endPage < totalPages) {
+                                    pages.push('...');
+                                }
+
+                                return pages.map((p, idx) => (
+                                    typeof p === 'number' ? (
+                                        <button
+                                            key={p}
+                                            onClick={() => setPage(p)}
+                                            className={`
+                                                w-10 h-10 rounded-lg font-bold transition-all
+                                                ${page === p
+                                                    ? 'bg-cyan-600 text-white shadow-lg scale-105'
+                                                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-cyan-500 dark:hover:border-cyan-500'
+                                                }
+                                            `}
+                                        >
+                                            {p + 1}
+                                        </button>
+                                    ) : (
+                                        <span key={`ellipsis-${idx}`} className="px-2 text-slate-400">...</span>
+                                    )
+                                ));
+                            })()}
+
+                            {/* Next */}
                             <button
                                 onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
                                 disabled={page === totalPages - 1}
                                 aria-label="Next Page"
-                                className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors"
+                                className="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors"
                             >
                                 <ChevronRight className="w-5 h-5" />
+                            </button>
+
+                            {/* Last Page */}
+                            <button
+                                onClick={() => setPage(totalPages - 1)}
+                                disabled={page === totalPages - 1}
+                                aria-label="Last Page"
+                                className="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors hidden sm:flex"
+                            >
+                                &raquo; <span className="font-bold">{totalPages}</span>
                             </button>
                         </div>
                     )}
