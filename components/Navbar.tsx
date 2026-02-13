@@ -419,7 +419,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               className="object-contain group-hover:scale-105 transition-transform duration-300"
             />
           )}
-          <span className="font-bold text-2xl tracking-tight hidden sm:block text-slate-900 dark:text-white font-['Cairo']">
+          <span className="font-bold text-xl sm:text-2xl tracking-tight text-slate-900 dark:text-white font-['Cairo']">
             {siteName}
           </span>
         </div>
@@ -642,6 +642,15 @@ export const Navbar: React.FC<NavbarProps> = ({
             title={t.tooltipMenu}
           >
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+
+          {/* Mobile Category Button */}
+          <button
+            className="lg:hidden p-2 text-slate-600 dark:text-slate-300"
+            onClick={() => navigate('/catalog')}
+            title={t.categories}
+          >
+            <Box className="w-6 h-6" />
           </button>
         </div>
       </div>
