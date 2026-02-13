@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Filter, ChevronRight } from 'lucide-react';
+import { Filter, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../src/db';
@@ -39,11 +39,10 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({ t, searchQuery: 
     }, [lang]) || ['All'];
 
     // Query Products from Local DB
-    const { products, hasMore } = useLiveQuery(async () => {
+    const { products, totalCount } = useLiveQuery(async () => {
         let collection = db.products.toCollection();
 
         if (activeCategory !== 'All') {
-            // Find category ID for the selected name
             const category = await db.categories
                 .filter(c => (lang === 'ar' && c.name_ar === activeCategory) || c.name_en === activeCategory)
                 .first();
@@ -51,12 +50,10 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({ t, searchQuery: 
             if (category) {
                 collection = db.products.where('category_id').equals(category.id);
             } else {
-                // Fallback for legacy data or if category not found
                 collection = db.products.where('category').equals(activeCategory);
             }
         }
 
-        // Apply Search Filter (Dexie doesn't have ILIKE, using JS filter)
         if (propSearchQuery) {
             const lowerQuery = propSearchQuery.toLowerCase();
             collection = collection.filter(p =>
@@ -73,9 +70,11 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({ t, searchQuery: 
 
         return {
             products: data,
-            hasMore: (page + 1) * ITEMS_PER_PAGE < count
+            totalCount: count
         };
-    }, [activeCategory, propSearchQuery, page]) || { products: [], hasMore: false };
+    }, [activeCategory, propSearchQuery, page]) || { products: [], totalCount: 0 };
+
+    const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
     // Reset page when filters change
     useEffect(() => {
@@ -94,7 +93,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({ t, searchQuery: 
                 <h2 className="text-4xl font-black text-slate-900 dark:text-white mb-4 flex items-center justify-center gap-3">
                     {title}
                     <span className="text-lg bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-400 px-3 py-1 rounded-full shadow-inner">
-                        {products.length}{hasMore ? '+' : ''}
+                        {totalCount}
                     </span>
                 </h2>
 
@@ -200,14 +199,41 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({ t, searchQuery: 
                         )}
                     </div>
 
-                    {/* Load More */}
-                    {hasMore && (
-                        <div className="text-center mt-12">
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                        <div className="flex justify-center items-center gap-2 mt-12 flex-wrap">
                             <button
-                                onClick={() => setPage(p => p + 1)}
-                                className="px-8 py-3 bg-cyan-600 text-white rounded-full font-bold shadow-lg hover:bg-cyan-500 transition-all transform hover:scale-105"
+                                onClick={() => setPage(p => Math.max(0, p - 1))}
+                                disabled={page === 0}
+                                aria-label="Previous Page"
+                                className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors"
                             >
-                                {t.readMore || 'Load More'}
+                                <ChevronLeft className="w-5 h-5" />
+                            </button>
+
+                            {Array.from({ length: totalPages }, (_, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => setPage(i)}
+                                    className={`
+                                        w-10 h-10 rounded-lg font-bold transition-all
+                                        ${page === i
+                                            ? 'bg-cyan-600 text-white shadow-lg scale-105'
+                                            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-cyan-500 dark:hover:border-cyan-500'
+                                        }
+                                    `}
+                                >
+                                    {i + 1}
+                                </button>
+                            ))}
+
+                            <button
+                                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                                disabled={page === totalPages - 1}
+                                aria-label="Next Page"
+                                className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors"
+                            >
+                                <ChevronRight className="w-5 h-5" />
                             </button>
                         </div>
                     )}
