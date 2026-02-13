@@ -225,6 +225,8 @@ export interface Translations {
   storageErrorMsg: string;
   loadingError: string;
   priceOnRequest: string;
+  paginationFirst: string;
+  paginationLast: string;
 }
 
 export interface MenuItem {

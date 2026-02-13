@@ -209,7 +209,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({ t, searchQuery: 
                                 aria-label="First Page"
                                 className="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors hidden sm:flex"
                             >
-                                <span className="font-bold">1</span> &laquo;
+                                <span className="font-bold">{t.paginationFirst}</span>
                             </button>
 
                             {/* Previous */}
@@ -235,7 +235,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({ t, searchQuery: 
 
                                 const pages = [];
                                 if (startPage > 0) {
-                                    pages.push('...');
+                                    pages.push('...'); 
                                 }
 
                                 for (let i = startPage; i < endPage; i++) {
@@ -284,7 +284,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({ t, searchQuery: 
                                 aria-label="Last Page"
                                 className="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors hidden sm:flex"
                             >
-                                &raquo; <span className="font-bold">{totalPages}</span>
+                                <span className="font-bold">{t.paginationLast}</span>
                             </button>
                         </div>
                     )}

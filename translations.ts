@@ -126,7 +126,9 @@ export const translations: Record<'en' | 'ar', Translations> = {
     // Storage
     storageErrorMsg: "Unable to save changes to local storage. Check your browser settings.",
     loadingError: "Failed to load saved data. Using default catalog.",
-    priceOnRequest: "Price on Request"
+    priceOnRequest: "Price on Request",
+    paginationFirst: "First",
+    paginationLast: "Last"
   },
   ar: {
     navHome: "الرئيسية",
@@ -253,6 +255,8 @@ export const translations: Record<'en' | 'ar', Translations> = {
     // Storage
     storageErrorMsg: "تعذر حفظ التغييرات. تحقق من إعدادات المتصفح.",
     loadingError: "فشل تحميل البيانات المحفوظة. جارٍ استخدام الكتالوج الافتراضي.",
-    priceOnRequest: "السعر عند الطلب"
+    priceOnRequest: "السعر عند الطلب",
+    paginationFirst: "First",
+    paginationLast: "Last"
   }
 };
