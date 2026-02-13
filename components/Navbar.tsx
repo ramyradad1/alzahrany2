@@ -483,7 +483,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Actions - Flex Shrink 0 */}
-        <div className="flex items-center gap-3 flex-shrink-0 justify-end">
+        <div className="flex items-center gap-3 flex-shrink-0 justify-end ml-auto">
           {/* Search */}
           {!location.pathname.startsWith('/admin') && (
             <div className="relative hidden lg:block w-60 group" onClick={e => e.stopPropagation()}>
@@ -644,14 +644,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
 
-          {/* Mobile Category Button */}
-          <button
-            className="lg:hidden p-2 text-slate-600 dark:text-slate-300"
-            onClick={() => navigate('/catalog')}
-            title={t.categories}
-          >
-            <Box className="w-6 h-6" />
-          </button>
         </div>
       </div>
 
