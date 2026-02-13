@@ -14,7 +14,7 @@ const DEFAULT_LINKS: SocialLink[] = [
     {
         name: 'WhatsApp',
         icon: <MessageCircle className="w-5 h-5" />,
-        url: 'https://wa.me/966575808772',
+        url: 'https://wa.me/966575818827',
         color: 'bg-green-500',
         hoverColor: 'hover:bg-green-600',
     },
@@ -74,7 +74,7 @@ export const SocialLinksWidget: React.FC<SocialLinksWidgetProps> = ({ links = DE
     return (
         <div
             className={`
-                fixed left-4 bottom-6 z-50 flex flex-col-reverse items-start gap-3
+                fixed left-4 bottom-8 z-50 flex flex-col items-center gap-4
                 transition-all duration-500 ease-out
                 ${isVisible
                     ? 'opacity-100 translate-x-0'
@@ -83,7 +83,7 @@ export const SocialLinksWidget: React.FC<SocialLinksWidgetProps> = ({ links = DE
             `}
         >
             {/* Social Links - Animate in/out */}
-            <div className={`flex flex-col gap-2 transition-all duration-300 ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+            <div className={`flex flex-col-reverse gap-3 transition-all duration-300 ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
                 {links.map((link, index) => (
                     <a
                         key={link.name}

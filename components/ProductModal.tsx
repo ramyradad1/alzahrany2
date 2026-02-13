@@ -13,7 +13,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, t 
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const phoneNumber = "966575808772";
+  const phoneNumber = "966575818827";
   const hasPrice = typeof product.price === 'number' && product.price > 0;
 
   // Determine list of images to display

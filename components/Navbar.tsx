@@ -602,10 +602,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           )}
 
-          {/* Admin */}
+          {/* Admin - Desktop Only */}
           <Link
             to="/admin"
-            className={`p-2 rounded-full transition-colors ${location.pathname.startsWith('/admin')
+            className={`hidden lg:flex p-2 rounded-full transition-colors ${location.pathname.startsWith('/admin')
               ? 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600'
               : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400'
               }`}
@@ -614,22 +614,22 @@ export const Navbar: React.FC<NavbarProps> = ({
             <Lock className="w-4 h-4" />
           </Link>
 
-          <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
+          <div className="hidden lg:block h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
 
-          {/* Lang Toggle */}
+          {/* Lang Toggle - Desktop Only */}
           <button
             onClick={toggleLang}
-            className="flex items-center gap-1 px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all font-bold text-xs uppercase tracking-wide"
+            className="hidden lg:flex items-center gap-1 px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all font-bold text-xs uppercase tracking-wide"
             title={t.tooltipLang}
           >
             <Globe className="w-3.5 h-3.5" />
             {lang === 'en' ? 'AR' : 'EN'}
           </button>
 
-          {/* Theme Toggle */}
+          {/* Theme Toggle - Desktop Only */}
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-cyan-400 transition-colors"
+            className="hidden lg:block p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-cyan-400 transition-colors"
             title={t.tooltipTheme}
           >
             {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -684,6 +684,25 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className={`w-1.5 h-1.5 rounded-full transition-colors ${location.pathname.startsWith('/admin') ? 'bg-cyan-500' : 'bg-slate-300 dark:bg-slate-600'}`} />
             {t.admin}
           </Link>
+
+          {/* Mobile Settings (Lang & Theme) */}
+          <div className="pt-3 mt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between px-4 pb-2">
+            <button
+              onClick={toggleLang}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-sm"
+            >
+              <Globe className="w-4 h-4" />
+              <span>{lang === 'en' ? 'Arabic' : 'English'}</span>
+            </button>
+
+            <button
+              onClick={toggleTheme}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-sm"
+            >
+              {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              <span>{isDarkMode ? (lang === 'en' ? 'Light Mode' : 'الوضع النهاري') : (lang === 'en' ? 'Dark Mode' : 'الوضع الليلي')}</span>
+            </button>
+          </div>
         </div>
       </div>
     </nav>

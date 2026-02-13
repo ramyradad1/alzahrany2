@@ -23,15 +23,19 @@ export const About: React.FC<AboutProps> = ({ t, content, lang = 'en' }) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSent(true);
-      setFormState({ name: '', email: '', subject: '', message: '' });
+    const { name, email, subject, message } = formState;
+    const whatsappMessage = `*Name:* ${name}%0a*Email:* ${email}%0a*Subject:* ${subject}%0a*Message:* ${message}`;
+    const whatsappUrl = `https://wa.me/966575818827?text=${whatsappMessage}`;
 
-      // Reset success message after 3 seconds
-      setTimeout(() => setIsSent(false), 3000);
-    }, 1500);
+    // Open WhatsApp in new tab
+    window.open(whatsappUrl, '_blank');
+
+    setIsSubmitting(false);
+    setIsSent(true);
+    setFormState({ name: '', email: '', subject: '', message: '' });
+
+    // Reset success message
+    setTimeout(() => setIsSent(false), 3000);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
