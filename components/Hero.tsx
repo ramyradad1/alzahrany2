@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { CachedImage } from '../components/common/CachedImage';
 import { ArrowRight, ChevronDown, ArrowLeft } from 'lucide-react';
-import { Translations, Language, HeroContent } from '../types';
+import { Translations, Language, HeroContent as BaseHeroContent } from '../types';
+
+interface HeroContent extends BaseHeroContent {
+  opacity?: number;
+}
 
 interface HeroProps {
   t: Translations;
@@ -36,37 +40,21 @@ export const Hero: React.FC<HeroProps> = ({ t, lang, onShopNow, content }) => {
     <div className="relative bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white overflow-hidden min-h-[600px] md:min-h-[800px] flex items-center transition-colors duration-500 perspective-1000">
 
       {/* Background Layer */}
-      {content?.image ? (
-        <div className="absolute inset-0 z-0">
-          <CachedImage src={content.image} alt="Hero Background" className="w-full h-full object-cover opacity-20 dark:opacity-30 blur-sm scale-105" />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-50/80 dark:via-slate-950/80 to-slate-50 dark:to-slate-950"></div>
-        </div>
-      ) : (
-        <>
-          {/* Interactive Background Grid Layer */}
-          <div
-              className="absolute inset-0 z-0 pointer-events-none opacity-[0.15] dark:opacity-[0.25] transition-transform duration-100 ease-out"
-            style={{
-              transform: `rotateX(${mousePos.y * 2}deg) rotateY(${mousePos.x * 2}deg) scale(1.1)`,
-            }}
-          >
-              <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:60px_60px]"></div>
-              <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_50%_50%,rgba(6,182,212,0.15),transparent)]"></div>
-          </div>
-
-          {/* Floating Orbs with Parallax */}
-          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-            <div
-                className="absolute top-[10%] left-[10%] rtl:right-[10%] rtl:left-auto w-96 h-96 bg-cyan-400/20 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen animate-float transition-transform duration-300"
-                style={{ transform: `translate(${mousePos.x * -40}px, ${mousePos.y * -40}px)` }}
-            />
-            <div
-                className="absolute bottom-[20%] right-[10%] rtl:left-[10%] rtl:right-auto w-[30rem] h-[30rem] bg-blue-600/10 rounded-full blur-[140px] mix-blend-multiply dark:mix-blend-screen animate-float-delayed transition-transform duration-300"
-                style={{ transform: `translate(${mousePos.x * 50}px, ${mousePos.y * 50}px)` }}
-            />
-          </div>
-        </>
-      )}
+      {/* Background Layer */}
+      <div className="absolute inset-0 z-0">
+        <CachedImage
+          src={content?.image || '/images/hero-background.jpeg'}
+          alt="Hero Background"
+          className={`w-full h-full object-cover scale-105 transition-all duration-700 ${content?.opacity
+            ? ''
+            : 'opacity-50 dark:opacity-60 blur-[1px]'
+            }`}
+          style={{ opacity: content?.opacity }}
+        />
+        {/* Gradient Overlay for Text Readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-50/80 via-slate-50/50 to-slate-50 dark:from-slate-950/80 dark:via-slate-950/50 dark:to-slate-950"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-50/50 via-transparent to-slate-50/50 dark:from-slate-950/50 dark:via-transparent dark:to-slate-950/50"></div>
+      </div>
 
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 py-24 md:py-32">

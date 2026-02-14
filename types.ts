@@ -41,6 +41,7 @@ export interface HeroContent {
   button_text_en?: string;
   button_text_ar?: string;
   image?: string;
+  opacity?: number;
 }
 
 export interface CatalogContent {

@@ -1,531 +1,296 @@
-import React, { useState, useRef } from 'react';
-import { Package, Plus, Image as ImageIcon, Edit, Trash2, X, Upload, Loader2, Save, AlertTriangle } from 'lucide-react';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../src/db';
-import { Product, ProductFormData, Translations, Language, Specification } from '../../types';
+import React, { useState, useMemo } from 'react';
+import { Product, Translations, Language, ProductFormData } from '../../types';
+import { Plus, Search, Edit, Trash2, X, Image as ImageIcon, Save, AlertCircle } from 'lucide-react';
 
 interface AdminProductsProps {
     products: Product[];
-    onAdd: (product: ProductFormData) => void;
-    onEdit: (id: number, product: ProductFormData) => void;
-    onDelete: (id: number) => void;
+    onAdd: (data: ProductFormData) => Promise<void>;
+    onEdit: (id: number, data: ProductFormData) => Promise<void>;
+    onDelete: (id: number) => Promise<void>;
     t: Translations;
     lang: Language;
 }
 
-const INITIAL_FORM_STATE: ProductFormData = {
-    name: '',
-    price: '',
-    category: '',
-    image: '',
-    images: [],
-    description: '',
-    specifications: []
-};
-
 export const AdminProducts: React.FC<AdminProductsProps> = ({ products, onAdd, onEdit, onDelete, t, lang }) => {
-    const [isSaving, setIsSaving] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [loading, setLoading] = useState(false);
 
+    // Form State
+    const [formData, setFormData] = useState<ProductFormData>({
+    name: '',
+      category: '', // Legacy
+      description: '',
+      image: '',
+    price: '',
+      specifications: []
+  });
 
-    const [isEditing, setIsEditing] = useState<number | null>(null);
-    const [isAdding, setIsAdding] = useState(false);
-    const [formData, setFormData] = useState<ProductFormData>(INITIAL_FORM_STATE);
-    const [isProcessingImage, setIsProcessingImage] = useState(false);
-    const [fileError, setFileError] = useState('');
+    const filteredProducts = useMemo(() => {
+        return products.filter(p =>
+            p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            p.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            p.category.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }, [products, searchTerm]);
 
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const galleryInputRef = useRef<HTMLInputElement>(null);
+    const handleOpenAdd = () => {
+        setEditingProduct(null);
+        setFormData({
+            name: '',
+        category: '',
+        description: '',
+        image: '',
+        price: '',
+        specifications: []
+    });
+      setIsModalOpen(true);
+  };
 
-    // Fetch categories for dropdown
-    const categories = useLiveQuery(() => db.categories.toArray()) || [];
-
-    // Helper to calculate depth for indentation
-    const getCategoryDepth = (cat: any, allCats: any[]): number => {
-        let depth = 0;
-        let parentId = cat.parent_id;
-        while (parentId) {
-            depth++;
-            const parent = allCats.find(c => c.id === parentId);
-            if (!parent) break;
-            parentId = parent.parent_id;
-        }
-        return depth;
-    };
-
-    const handleFormSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        const finalPrice = formData.price === '' || formData.price === 0 ? undefined : Number(formData.price);
-
-        const cleanedFormData: ProductFormData = {
-            ...formData,
-            price: finalPrice,
-            specifications: formData.specifications.filter(s => s.label.trim() !== '' || s.value.trim() !== '')
-        };
-        // ... rest of submit
-
-        setIsSaving(true);
-
-        try {
-            if (isEditing !== null) {
-                await onEdit(isEditing, cleanedFormData);
-                setIsEditing(null);
-            } else {
-                await onAdd(cleanedFormData);
-                setIsAdding(false);
-            }
-            setFormData(INITIAL_FORM_STATE);
-        } catch (error) {
-            console.error(error);
-            // Error is already alerted by parent, but we keep the form open so user doesn't lose data
-        } finally {
-            setIsSaving(false);
-        }
-    };
-
-    const processFile = (file: File, callback: (result: string) => void, setLoading: (l: boolean) => void) => {
-        if (file.size > 1024 * 1024) {
-            setFileError('Image too large (>1MB). Please compress it to save storage space.');
-            return;
-        }
-        setFileError('');
-        setLoading(true);
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            callback(reader.result as string);
-            setLoading(false);
-        };
-        reader.readAsDataURL(file);
-    };
-
-    // ... (rest of methods handleMainImageUpload etc. stay the same until return)
-
-    const handleMainImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            processFile(file, (result) => {
-                setFormData(prev => ({ ...prev, image: result }));
-            }, setIsProcessingImage);
-        }
-    };
-
-    const handleGalleryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            processFile(file, (result) => {
-                setFormData(prev => ({
-                    ...prev,
-                    images: [...(prev.images || []), result]
-                }));
-            }, setIsProcessingImage);
-        }
-    };
-
-    const handleRemoveGalleryImage = (index: number) => {
-        setFormData(prev => ({
-            ...prev,
-            images: prev.images?.filter((_, i) => i !== index)
-        }));
-    };
-
-    const handleAddSpec = () => {
-        setFormData(prev => ({
-            ...prev,
-            specifications: [...prev.specifications, { label: '', value: '' }]
-        }));
-    };
-
-    const handleRemoveSpec = (index: number) => {
-        setFormData(prev => ({
-            ...prev,
-            specifications: prev.specifications.filter((_, i) => i !== index)
-        }));
-    };
-
-    const handleSpecChange = (index: number, field: keyof Specification, value: string) => {
-        const newSpecs = [...formData.specifications];
-        newSpecs[index] = { ...newSpecs[index], [field]: value };
-        setFormData(prev => ({ ...prev, specifications: newSpecs }));
-    };
-
-    const startEdit = (product: Product) => {
+    const handleOpenEdit = (product: Product) => {
+        setEditingProduct(product);
         setFormData({
             name: product.name,
-            price: product.price || '',
             category: product.category,
-            category_id: product.category_id,
-            image: product.image,
-            images: product.images || [product.image],
             description: product.description,
+            image: product.image,
+            price: product.price || '',
             specifications: product.specifications || []
         });
-        setIsEditing(product.id);
-        setIsAdding(false);
-        setFileError('');
+        setIsModalOpen(true);
     };
 
-    const startAdd = () => {
-        setFormData(INITIAL_FORM_STATE);
-        setIsAdding(true);
-        setIsEditing(null);
-        setFileError('');
-    };
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+      setLoading(true);
+      try {
+        if (editingProduct) {
+            await onEdit(editingProduct.id, formData);
+        } else {
+          await onAdd(formData);
+      }
+        setIsModalOpen(false);
+    } catch (error) {
+        console.error(error);
+        alert('Operation failed');
+    } finally {
+        setLoading(false);
+      }
+  };
 
-    const cancelForm = () => {
-        setIsAdding(false);
-        setIsEditing(null);
-        setFormData(INITIAL_FORM_STATE);
-        setFileError('');
+    const handleSpecChange = (index: number, field: 'label' | 'value', value: string) => {
+        const newSpecs = [...(formData.specifications || [])];
+        newSpecs[index] = { ...newSpecs[index], [field]: value };
+      setFormData({ ...formData, specifications: newSpecs });
+  };
+
+    const addSpec = () => {
+        setFormData({
+        ...formData,
+        specifications: [...(formData.specifications || []), { label: '', value: '' }]
+    });
+  };
+
+    const removeSpec = (index: number) => {
+        const newSpecs = [...(formData.specifications || [])];
+        newSpecs.splice(index, 1);
+        setFormData({ ...formData, specifications: newSpecs });
     };
 
     return (
-        <div className="animate-fade-in-up">
-            <div className="flex justify-end mb-4">
-                {!isAdding && !isEditing && (
-                    <button
-                        onClick={startAdd}
-                        className="flex items-center justify-center px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors font-medium shadow-lg shadow-cyan-500/20"
-                    >
-                        <Plus className="w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0" />
-                        {t.addItem}
-                    </button>
-                )}
-            </div>
+      <div>
+          {/* Header Actions */}
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8">
+              <div className="relative w-full sm:w-96">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <input
+                      type="text"
+                      placeholder={t.search}
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none transition-all"
+                  />
+              </div>
+              <button 
+                  onClick={handleOpenAdd}
+                  className="flex items-center gap-2 px-6 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl font-bold transition-colors shadow-lg shadow-cyan-500/20"
+              >
+                  <Plus className="w-5 h-5" />
+                  {t.addItem}
+              </button>
+          </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className={`lg:col-span-${isAdding || isEditing ? '2' : '3'} transition-all duration-300`}>
-                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left rtl:text-right">
-                                <thead className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">
-                                    <tr>
-                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t.item}</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t.category}</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t.price}</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right rtl:text-left">{t.actions}</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                    {products.map((product) => (
-                                        <tr key={product.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center">
-                                                    {product.image ? (
-                                                        <img src={product.image} alt="" className="h-10 w-10 rounded-lg object-cover mr-3 rtl:ml-3 rtl:mr-0 bg-slate-100 dark:bg-slate-700" />
-                                                    ) : (
-                                                        <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center mr-3 rtl:ml-3 rtl:mr-0 text-slate-400 border border-slate-200 dark:border-slate-600">
-                                                            <ImageIcon className="w-5 h-5" />
-                                                        </div>
-                                                    )}
-                                                    <span className="font-medium text-slate-900 dark:text-slate-200">{product.name}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">
-                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-300">
-                                                    {product.category}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 text-sm font-mono text-slate-700 dark:text-cyan-400 font-semibold">
-                                                {product.price ? `$${product.price.toFixed(2)}` : <span className="text-slate-400 italic">On Request</span>}
-                                            </td>
-                                            <td className="px-6 py-4 text-right rtl:text-left space-x-2">
-                                                <button
-                                                    onClick={() => startEdit(product)}
-                                                    className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors inline-block"
-                                                    title="Edit"
-                                                >
-                                                    <Edit className="w-4 h-4" />
-                                                </button>
-                                                <button
-                                                    onClick={() => onDelete(product.id)}
-                                                    className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors inline-block"
-                                                    title="Delete"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                            {products.length === 0 && (
-                                <div className="p-12 text-center text-slate-500 dark:text-slate-400">
-                                    <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                                    <p>{t.noProducts}</p>
-                                </div>
-                            )}
-                        </div>
+          {/* Products Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {filteredProducts.map(product => (
+                  <div key={product.id} className="group bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300">
+                      <div className="relative h-48 overflow-hidden">
+                          <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-between p-4">
+                              <span className="text-white font-bold">{product.category}</span>
+                          </div>
+                </div>
+                <div className="p-5">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 line-clamp-1">{product.name}</h3>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm mb-4 line-clamp-2">{product.description}</p>
+
+                    <div className="flex gap-2 mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
+                        <button 
+                            onClick={() => handleOpenEdit(product)}
+                            className="flex-1 py-2 flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-700/50 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 text-slate-700 dark:text-slate-300 hover:text-cyan-600 dark:hover:text-cyan-400 rounded-lg transition-colors text-sm font-medium"
+                        >
+                            <Edit className="w-4 h-4" />
+                            {t.editItem}
+                        </button>
+                        <button
+                            onClick={() => onDelete(product.id)}
+                            className="px-4 py-2 flex items-center justify-center bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg transition-colors"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </button>
                     </div>
                 </div>
-
-                {(isAdding || isEditing) && (
-                    <div className="lg:col-span-1 animate-fade-in-right">
-                        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 p-6 sticky top-24 max-h-[90vh] overflow-y-auto custom-scrollbar">
-                            <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                                    {isAdding ? t.addItem : t.editItem}
-                                </h3>
-                                <button onClick={cancelForm} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors" title="Close" aria-label="Close">
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
-
-                            <form onSubmit={handleFormSubmit} className="space-y-4">
-
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t.name}</label>
-                                    <input
-                                        required
-                                        type="text"
-                                        value={formData.name}
-                                        onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none text-slate-900 dark:text-white transition-all text-left rtl:text-right"
-                                        placeholder={t.name}
-                                        title={t.name}
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t.price} <span className="text-xs text-slate-400 font-normal">(Optional)</span></label>
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            min="0"
-                                            value={formData.price}
-                                            onChange={e => setFormData({ ...formData, price: e.target.value })}
-                                            placeholder="On Request"
-                                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none text-slate-900 dark:text-white transition-all text-left rtl:text-right placeholder-slate-400"
-                                            title={t.price}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t.category}</label>
-                                        <select
-                                            required
-                                            value={formData.category_id || ''}
-                                            onChange={e => {
-                                                const catId = Number(e.target.value);
-                                                const cat = categories.find(c => c.id === catId);
-                                                setFormData({
-                                                    ...formData,
-                                                    category_id: catId,
-                                                    category: cat ? (lang === 'ar' && cat.name_ar ? cat.name_ar : cat.name_en) : ''
-                                                });
-                                            }}
-                                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none text-slate-900 dark:text-white transition-all text-left rtl:text-right"
-                                            title={t.category}
-                                            aria-label={t.category}
-                                        >
-                                            <option value="">{lang === 'en' ? "Select Category" : "اختر الفئة"}</option>
-                                            {categories.map(cat => {
-                                                // Simple flat list with visual hierarchy indentation could be easier than double dropdowns for improved UX?
-                                                // Or just group by parent?
-                                                // Let's do visual hierarchy for now as it's simpler and effective for < 100 categories.
-                                                const depth = getCategoryDepth(cat, categories);
-                                                const prefix = '\u00A0'.repeat(depth * 4); // Indentation
-                                                return (
-                                                    <option key={cat.id} value={cat.id}>
-                                                        {prefix}{lang === 'ar' && cat.name_ar ? cat.name_ar : cat.name_en}
-                                                    </option>
-                                                );
-                                            })}
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t.description}</label>
-                                    <textarea
-                                        required
-                                        rows={3}
-                                        value={formData.description}
-                                        onChange={e => setFormData({ ...formData, description: e.target.value })}
-                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none resize-none text-slate-900 dark:text-white transition-all text-left rtl:text-right"
-                                        placeholder={t.description}
-                                        title={t.description}
-                                    />
-                                </div>
-
-                                <div className="border-t border-b border-slate-200 dark:border-slate-700 py-4 my-2">
-                                    <div className="flex justify-between items-center mb-3">
-                                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">{t.techSpecs}</label>
-                                        <button
-                                            type="button"
-                                            onClick={handleAddSpec}
-                                            className="text-xs flex items-center bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 px-2 py-1 rounded transition-colors"
-                                        >
-                                            <Plus className="w-3 h-3 mr-1 rtl:ml-1 rtl:mr-0" /> {t.addSpecRow}
-                                        </button>
-                                    </div>
-
-                                    <div className="space-y-3">
-                                        {formData.specifications.length === 0 && (
-                                            <p className="text-xs text-slate-400 italic text-center py-2">No specifications added yet.</p>
-                                        )}
-                                        {formData.specifications.map((spec, index) => (
-                                            <div key={index} className="flex gap-2 items-start animate-fade-in-up">
-                                                <div className="flex-1">
-                                                    <input
-                                                        type="text"
-                                                        placeholder={t.label}
-                                                        value={spec.label}
-                                                        onChange={(e) => handleSpecChange(index, 'label', e.target.value)}
-                                                        className="w-full px-2 py-1.5 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded focus:ring-1 focus:ring-cyan-500 outline-none text-slate-900 dark:text-white text-left rtl:text-right"
-                                                    />
-                                                </div>
-                                                <div className="flex-1">
-                                                    <input
-                                                        type="text"
-                                                        placeholder={t.value}
-                                                        value={spec.value}
-                                                        onChange={(e) => handleSpecChange(index, 'value', e.target.value)}
-                                                        className="w-full px-2 py-1.5 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded focus:ring-1 focus:ring-cyan-500 outline-none text-slate-900 dark:text-white text-left rtl:text-right"
-                                                    />
-                                                </div>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleRemoveSpec(index)}
-                                                    className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                                                    title="Remove Specification"
-                                                    aria-label="Remove Specification"
-                                                >
-                                                    <X className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t.productImage}</label>
-                                    <div
-                                        onClick={() => !isProcessingImage && fileInputRef.current?.click()}
-                                        className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-lg transition-all group ${isProcessingImage
-                                            ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-900/10 cursor-wait'
-                                            : 'border-slate-300 dark:border-slate-600 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:border-cyan-500 dark:hover:border-cyan-500'
-                                            }`}
-                                        role="button"
-                                        tabIndex={0}
-                                        aria-label="Upload product main image"
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' || e.key === ' ') {
-                                                !isProcessingImage && fileInputRef.current?.click();
-                                            }
-                                        }}
-                                    >
-                                        <div className="space-y-1 text-center">
-                                            {isProcessingImage ? (
-                                                <div className="py-4">
-                                                    <Loader2 className="w-8 h-8 mx-auto text-cyan-600 dark:text-cyan-400 animate-spin mb-2" />
-                                                    <p className="text-sm text-cyan-600 dark:text-cyan-400 font-medium">Processing...</p>
-                                                </div>
-                                            ) : formData.image ? (
-                                                <div className="relative">
-                                                    <img src={formData.image} alt="Preview" className="mx-auto h-32 object-contain rounded-md shadow-md" />
-                                                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-md">
-                                                        <p className="text-white text-xs font-medium">{t.clickToChange}</p>
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <>
-                                                    <Upload className="mx-auto h-12 w-12 text-slate-400 group-hover:text-cyan-500 transition-colors" />
-                                                    <div className="flex text-sm text-slate-600 dark:text-slate-400">
-                                                        <span className="relative rounded-md font-medium text-cyan-600 hover:text-cyan-500 focus-within:outline-none">
-                                                            {t.uploadFile}
-                                                        </span>
-                                                    </div>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-500">Max 1MB</p>
-                                                </>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <input
-                                        ref={fileInputRef}
-                                        type="file"
-                                        accept="image/*"
-                                        className="sr-only"
-                                        onChange={handleMainImageUpload}
-                                        disabled={isProcessingImage}
-                                        title="Upload product main image"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Gallery Images (Optional)</label>
-                                    <div className="grid grid-cols-4 gap-2 mb-2">
-                                        {formData.images?.map((img, idx) => (
-                                            <div key={idx} className="relative group aspect-square rounded-lg overflow-hidden border border-slate-200 dark:border-slate-600">
-                                                <img src={img} alt="" className="w-full h-full object-cover" />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleRemoveGalleryImage(idx)}
-                                                    className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                                    title="Remove Image"
-                                                    aria-label="Remove Image"
-                                                >
-                                                    <X className="w-3 h-3" />
-                                                </button>
-                                            </div>
-                                        ))}
-                                        <button
-                                            type="button"
-                                            onClick={() => galleryInputRef.current?.click()}
-                                            className="flex flex-col items-center justify-center aspect-square rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-600 hover:border-cyan-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-slate-400 hover:text-cyan-500"
-                                        >
-                                            <Plus className="w-6 h-6" />
-                                            <span className="text-[10px] mt-1">Add</span>
-                                        </button>
-                                    </div>
-                                    <input
-                                        ref={galleryInputRef}
-                                        type="file"
-                                        accept="image/*"
-                                        className="sr-only"
-                                        onChange={handleGalleryUpload}
-                                        disabled={isProcessingImage}
-                                        title="Upload gallery images"
-                                    />
-                                </div>
-
-                                {fileError && (
-                                    <div className="flex items-center gap-2 text-red-500 text-sm p-2 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                                        <AlertTriangle className="w-4 h-4" />
-                                        {fileError}
-                                    </div>
-                                )}
-
-                                <div className="pt-4 flex gap-3">
-                                    <button
-                                        type="submit"
-                                        className="flex-1 py-2.5 px-4 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-bold transition-all shadow-lg shadow-cyan-500/20 flex justify-center items-center disabled:opacity-50 disabled:cursor-not-allowed"
-                                        disabled={isProcessingImage || isSaving}
-                                    >
-                                        {isSaving ? (
-                                            <>
-                                                <Loader2 className="w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0 animate-spin" />
-                                                Saving...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Save className="w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0" />
-                                                {t.save}
-                                            </>
-                                        )}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={cancelForm}
-                                        disabled={isSaving}
-                                        className="flex-1 py-2.5 px-4 bg-transparent border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg font-medium transition-all"
-                                    >
-                                        {t.cancel}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )}
             </div>
-        </div>
-    );
+        ))}
+
+              {filteredProducts.length === 0 && (
+                  <div className="col-span-full flex flex-col items-center justify-center py-20 text-slate-400">
+                      <AlertCircle className="w-16 h-16 mb-4 opacity-50" />
+                      <p className="text-xl">No products found</p>
+                  </div>
+              )}
+          </div>
+
+          {/* Edit/Add Modal */}
+          {isModalOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                  <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                      <div className="sticky top-0 z-10 flex justify-between items-center p-6 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+                          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+                              {editingProduct ? t.editItem : t.addItem}
+                          </h2>
+                          <button
+                              onClick={() => setIsModalOpen(false)}
+                              className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors"
+                          >
+                              <X className="w-6 h-6" />
+                          </button>
+                      </div>
+
+                      <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              <div>
+                                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t.name}</label>
+                                  <input 
+                                      type="text" 
+                                      required 
+                                      value={formData.name}
+                                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none"
+                                  />
+                              </div>
+                              <div>
+                                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t.category}</label>
+                                  <input 
+                                      type="text"
+                                      required
+                                      value={formData.category}
+                                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none"
+                                  />
+                              </div>
+                              <div className="col-span-full">
+                                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t.description}</label>
+                                  <textarea 
+                                      rows={3}
+                                      required 
+                                      value={formData.description}
+                                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none"
+                                  />
+                              </div>
+                              <div className="col-span-full">
+                                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t.productImage} (URL)</label>
+                                  <div className="flex gap-4">
+                                      <div className="relative flex-1">
+                                          <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                          <input
+                                              type="url"
+                                              required
+                                              value={formData.image}
+                                              onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                                              className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none"
+                                          />
+                                      </div>
+                                      {formData.image && (
+                                          <img src={formData.image} alt="Preview" className="w-10 h-10 rounded-lg object-cover border border-slate-200 dark:border-slate-700" />
+                                      )}
+                                  </div>
+                              </div>
+                          </div>
+
+                          <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
+                              <div className="flex justify-between items-center mb-4">
+                                  <h3 className="font-bold text-lg">{t.techSpecs}</h3>
+                                  <button
+                                      type="button" 
+                                      onClick={addSpec}
+                                      className="text-sm px-3 py-1 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-colors"
+                                  >
+                                      + {t.addSpecRow}
+                                  </button>
+                              </div>
+                              <div className="space-y-3">
+                                  {formData.specifications?.map((spec, idx) => (
+                                      <div key={idx} className="flex gap-3">
+                                          <input
+                                              type="text"
+                                              placeholder={t.label}
+                                              value={spec.label}
+                              onChange={(e) => handleSpecChange(idx, 'label', e.target.value)}
+                              className="flex-1 px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none"
+                          />
+                          <input
+                              type="text"
+                              placeholder={t.value}
+                              value={spec.value}
+                              onChange={(e) => handleSpecChange(idx, 'value', e.target.value)}
+                              className="flex-1 px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none"
+                          />
+                          <button
+                              type="button" 
+                              onClick={() => removeSpec(idx)}
+                              className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                          >
+                              <Trash2 className="w-4 h-4" />
+                          </button>
+                      </div>
+                  ))}
+                              </div>
+                          </div>
+
+                          <div className="sticky bottom-0 bg-white dark:bg-slate-800 pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3">
+                              <button
+                                  type="button" 
+                                  onClick={() => setIsModalOpen(false)}
+                                  className="px-6 py-2 text-slate-600 dark:text-slate-400 font-medium hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                              >
+                                  {t.cancel}
+                              </button>
+                              <button
+                                  type="submit" 
+                                  disabled={loading}
+                                  className="px-6 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-lg shadow-lg shadow-cyan-500/20 transition-all flex items-center gap-2"
+                              >
+                                  {loading ? <AlertCircle className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                  {t.save}
+                              </button>
+                          </div>
+                      </form>
+                  </div>
+              </div>
+          )}
+      </div>
+  );
 };

@@ -15,7 +15,7 @@ import { Partners } from './components/Partners';
 import { CustomSection } from './components/CustomSection';
 import { ScrollToTop } from './components/ScrollToTop';
 import { ScrollToTopButton } from './components/ScrollToTopButton';
-
+import { SocialLinksWidget } from './components/SocialLinksWidget';
 import { ProductModal } from './components/ProductModal';
 import { AboutPage } from './components/AboutPage';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -45,8 +45,13 @@ const PageLoader = () => (
 const App = () => {
   const navigate = useNavigate();
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    if (typeof window !== 'undefined') return localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    return false;
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('theme');
+      // If explicit preference exists, use it. Otherwise default to true (Dark Mode).
+      if (savedTheme) return savedTheme === 'dark';
+      return true;
+    }
+    return true;
   });
   const [lang, setLang] = useState<Language>(() => (typeof window !== 'undefined' ? (localStorage.getItem('lang') as Language) || 'en' : 'en'));
 
@@ -136,6 +141,32 @@ const App = () => {
             is_visible: true,
             content: {}
           });
+        }
+
+        // Migration: Ensure suppliers exists (Custom Section)
+        const suppliersExists = await db.sections.get('suppliers');
+        if (!suppliersExists) {
+          const newSuppliersSection = {
+            id: 'suppliers',
+            label: 'Suppliers',
+            order: 2.5, // Place between Catalog (2) and Partners (3)
+            is_visible: true,
+            content: {
+              html: '<h2 class="text-3xl font-bold text-center mb-12 text-slate-800 dark:text-slate-200">Some of our suppliers</h2>',
+              layoutMode: 'row',
+              sectionHeight: 'auto',
+              bgColor: 'transparent',
+              paddingY: '48',
+              gap: '80px',
+              images: [
+                { id: 'sup1', url: '/images/suppliers_1.jpg', width: '600px', height: 'auto' },
+                { id: 'sup2', url: '/images/suppliers_2.jpg', width: '600px', height: 'auto' }
+              ]
+            }
+          };
+          await db.sections.add(newSuppliersSection);
+          // Ensure it gets synced to server
+          await addToSyncQueue('sections', 'CREATE', newSuppliersSection, 'suppliers');
         }
       }
 
@@ -301,7 +332,7 @@ const App = () => {
                 <Footer t={t} lang={lang} content={getSection('footer')?.content} />
                 <ScrollToTop />
                 <ScrollToTopButton />
-
+                <SocialLinksWidget />
               </>
             }>
               <Route path="/" element={

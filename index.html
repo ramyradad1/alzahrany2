@@ -79,6 +79,19 @@
       }
     }
   </script>
+  <script>
+      (function () {
+        try {
+          var savedTheme = localStorage.getItem('theme');
+          var isDark = !savedTheme || savedTheme === 'dark'; // Default to dark if no preference or explicitly dark
+          if (isDark) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch (e) { }
+      })();
+  </script>
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cairo:wght@400;600;700&display=swap"
     rel="stylesheet">

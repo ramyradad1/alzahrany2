@@ -54,7 +54,16 @@ export const BusinessDivisions: React.FC<BusinessDivisionProps> = ({ t, lang }) 
   ];
 
   return (
-    <section className="relative w-full py-20 overflow-hidden bg-white">
+    <section className="relative w-full py-20 overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0 z-0">
+        <img
+          src="/images/custom.jpeg"
+          alt=""
+          className="w-full h-full object-cover blur-[2px]"
+        />
+        <div className="absolute inset-0 bg-white/20 dark:bg-slate-900/20"></div>
+      </div>
       {/* Background Geometric Shapes */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
         {/* Top Left Teal Triangle */}
@@ -88,9 +97,7 @@ export const BusinessDivisions: React.FC<BusinessDivisionProps> = ({ t, lang }) 
                     <div className="relative">
                          <h2 className="text-4xl md:text-5xl font-bold text-slate-800 tracking-tight">
                             Arkan <span className="text-[#0e7490]">Labtech</span>
-                         </h2>
-                         {/* Green Underline */}
-                         <div className={`absolute -bottom-2 ${lang === 'ar' ? 'left-0' : 'right-0'} w-24 h-1.5 bg-green-400 rounded-full`}></div>
+                  </h2>
                     </div>
                 </div>
             </div>
@@ -110,14 +117,14 @@ export const BusinessDivisions: React.FC<BusinessDivisionProps> = ({ t, lang }) 
                 <div className="mb-4 relative">
                     <Icon 
                         strokeWidth={1.5} 
-                        className="w-16 h-16 text-slate-800 group-hover:text-[#0e7490] transition-colors duration-300" 
+                    className="w-16 h-16 text-slate-800 dark:text-white group-hover:text-[#0e7490] dark:group-hover:text-[#0e7490] transition-colors duration-300" 
                     />
                     {/* Subtle glow on hover */}
                      <div className="absolute inset-0 bg-[#0e7490]/10 rounded-full scale-0 group-hover:scale-150 transition-transform duration-300 opacity-0 group-hover:opacity-100 -z-10 blur-md"></div>
                 </div>
                 
                 {/* Text */}
-                <h3 className="text-xl md:text-2xl font-medium text-slate-700 leading-snug max-w-[200px]">
+                <h3 className="text-xl md:text-2xl font-medium text-slate-900 dark:text-white leading-snug max-w-[200px]">
                   {lang === 'en' ? division.name_en : division.name_ar}
                 </h3>
               </div>

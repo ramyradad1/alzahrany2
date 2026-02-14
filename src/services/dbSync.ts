@@ -207,21 +207,49 @@ export const syncSections = async () => {
     if (error) throw error;
 
     if (data) {
+      // 1. Get local pending changes
+      const pendingCreates = await db.sync_queue.where({ table: 'sections', action: 'CREATE' }).toArray();
+      const pendingUpdates = await db.sync_queue.where({ table: 'sections', action: 'UPDATE' }).toArray();
+
+      const pendingCreateIds = new Set(pendingCreates.map(i => i.data.id));
+      const pendingUpdateIds = new Set(pendingUpdates.map(i => i.data.id));
+
+      // 2. Identify stale local data (Deleted on server)
       const serverIds = new Set(data.map(d => d.id));
       const localIds = await db.sections.toCollection().primaryKeys();
         
-      const idsToDelete = localIds.filter(id => !serverIds.has(id));
+      // Only delete if NOT on server AND NOT pending creation locally
+      const idsToDelete = localIds.filter(id => !serverIds.has(id) && !pendingCreateIds.has(id));
 
       if (idsToDelete.length > 0) {
+        console.log(`Removing ${idsToDelete.length} stale sections locally`);
          await db.sections.bulkDelete(idsToDelete);
       }
 
-      await db.sections.bulkPut(data as Section[]);
-      console.log(`Synced ${data.length} sections to local DB`);
+      // 3. Apply server updates (Skip if we have a pending local update)
+      const validServerData = data.filter(d => !pendingUpdateIds.has(d.id));
+
+      if (validServerData.length > 0) {
+        // Clear and re-populate to handle potential schema drifts or clean state needed
+        // BUT we must preserve pending creations. 
+        // Similar strategy to products: update existing ones, don't wipe everything blindly if we can avoid it.
+        // Or bulkPut will overwrite existing valid ones.
+
+        await db.sections.bulkPut(validServerData as Section[]);
+
+        // Re-apply optimistic updates (if any were overwritten by bulkPut)
+        // BulkPut overwrites. So if server has old data for ID X, and we have pending update for ID X,
+        // we filtered X out of validServerData above. So local version of X remains untouched. Correct.
+
+        // What about pending CREATES?
+        // They are not in validServerData (since they are not on server).
+        // They are in DB. bulkPut won't touch them since IDs differ.
+        // So we are good.
+      }
+
+      console.log(`Synced ${validServerData.length} sections from server`);
       
       // Sync Images from section content
-      // Note: This iterates through all sections and tries to find 'image' or 'bgImage' fields in content.
-      // It's a best-effort approach based on types.ts definitions.
       const imageUrls: string[] = [];
       data.forEach(section => {
           if (section.content) {

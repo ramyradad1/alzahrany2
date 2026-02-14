@@ -55,13 +55,7 @@ export const About: React.FC<AboutProps> = ({ t, content, lang = 'en' }) => {
   const globalText = (lang === 'en' ? content?.global_text_en : content?.global_text_ar) || t.aboutGlobalText;
 
 
-  // Timeline Data
-  const TIMELINE_EVENTS = [
-    { year: '2010', title: t.history2010, desc: t.history2010Desc },
-    { year: '2015', title: t.history2015, desc: t.history2015Desc },
-    { year: '2020', title: t.history2020, desc: t.history2020Desc },
-    { year: '2024', title: t.history2024, desc: t.history2024Desc },
-  ];
+
 
   return (
     <div id="about" className="container mx-auto px-4 py-10 md:py-16 animate-fade-in-up text-left rtl:text-right">
