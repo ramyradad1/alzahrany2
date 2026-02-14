@@ -73,7 +73,7 @@ export const Footer: React.FC<FooterProps> = ({ t, lang, content }) => {
                                 <div className="p-2 bg-slate-100 dark:bg-slate-900 rounded-lg group-hover:bg-cyan-50 dark:group-hover:bg-cyan-900/20 transition-colors">
                                     <Mail className="w-5 h-5 text-slate-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors" />
                                 </div>
-                                <a href="mailto:info@arkan-lab.com" className="hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors">info@arkan-lab.com</a>
+                                <a href="mailto:Sales@arkan-labtech.com" className="hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors">Sales@arkan-labtech.com</a>
                             </li>
                         </ul>
                     </div>

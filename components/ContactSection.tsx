@@ -66,7 +66,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ t, lang, content
                 <div className="w-1 h-12 bg-cyan-500 rounded-full group-hover:h-16 transition-all duration-300"></div>
                 <div>
                   <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Email</p>
-                  <p className="font-medium group-hover:text-cyan-400 transition-colors">sales@arkan-lab.com</p>
+                  <p className="font-medium group-hover:text-cyan-400 transition-colors">Sales@arkan-labtech.com</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 group">

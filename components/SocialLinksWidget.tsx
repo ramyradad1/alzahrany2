@@ -8,8 +8,8 @@ export const SocialLinksWidget = () => {
 
   // Default links - can be customized or fetched from settings
   const socialLinks = [
-    { icon: <MessageCircle className="w-5 h-5" />, label: 'WhatsApp', href: 'https://wa.me/966575808772', color: 'bg-green-500' },
-    { icon: <Phone className="w-5 h-5" />, label: 'Call', href: 'tel:+966575808772', color: 'bg-blue-500' },
+    { icon: <MessageCircle className="w-5 h-5" />, label: 'WhatsApp', href: 'https://wa.me/966575818827', color: 'bg-green-500' },
+    { icon: <Phone className="w-5 h-5" />, label: 'Call', href: 'tel:+966575818827', color: 'bg-blue-500' },
     { icon: <Mail className="w-5 h-5" />, label: 'Email', href: 'mailto:Sales@arkan-labtech.com', color: 'bg-red-500' },
   ];
 
