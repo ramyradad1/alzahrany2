@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Section, Translations } from '../../types';
+import { Section, Translations, SectionImage } from '../../types';
+import { db } from '../../src/db';
+import { addToSyncQueue } from '../../src/services/syncQueue';
 import { AdminHero } from './AdminHero';
 import { Save, Loader2 } from 'lucide-react';
 import { supabase } from '../../supabase';
@@ -13,7 +15,6 @@ interface AdminSectionEditorProps {
 }
 
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../src/db';
 
 // Generic Simple Text Editor (for Catalog & Partners)
 const SimpleTextEditor: React.FC<{ section: Section, onUpdate: (s: Section) => void }> = ({ section, onUpdate }) => {
@@ -26,20 +27,23 @@ const SimpleTextEditor: React.FC<{ section: Section, onUpdate: (s: Section) => v
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        const updated = { ...section, content };
+        try {
+            const updated = { ...section, content };
 
-        const { error } = await supabase
-            .from('sections')
-            .update({ content })
-            .eq('id', section.id);
+            // 1. Update Local DB
+            await db.sections.put(updated);
 
-        if (error) {
-            alert('Failed to update section');
-        } else {
+            // 2. Queue Sync
+            await addToSyncQueue('sections', 'UPDATE', updated);
+
             onUpdate(updated);
-            alert('Section updated!');
+            alert('Section updated (offline capable)!');
+        } catch (error) {
+            console.error('Failed to update section:', error);
+            alert('Failed to update section');
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     return (
@@ -132,20 +136,23 @@ const AboutEditor: React.FC<{ section: Section, onUpdate: (s: Section) => void }
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        const updated = { ...section, content };
+        try {
+            const updated = { ...section, content };
 
-        const { error } = await supabase
-            .from('sections')
-            .update({ content })
-            .eq('id', section.id);
+            // 1. Update Local DB
+            await db.sections.put(updated);
 
-        if (error) {
-            alert('Failed to update section');
-        } else {
+            // 2. Queue Sync
+            await addToSyncQueue('sections', 'UPDATE', updated);
+
             onUpdate(updated);
-            alert('About section updated!');
+            alert('About section updated (offline capable)!');
+        } catch (error) {
+            console.error('Failed to update section:', error);
+            alert('Failed to update section');
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     return (
@@ -237,10 +244,14 @@ const CustomSectionEditor: React.FC<{ section: Section, onUpdate: (s: Section) =
     const [bgSize, setBgSize] = useState(section.content?.bgSize || 'cover');
     const [bgOpacity, setBgOpacity] = useState(section.content?.bgOpacity ?? 1);
     const [sectionHeight, setSectionHeight] = useState(section.content?.sectionHeight || 'auto');
-    const [paddingY, setPaddingY] = useState(section.content?.paddingY || '64');
+    const [paddingY, setPaddingY] = useState(section.content?.paddingY || '48');
+    const [gap, setGap] = useState(section.content?.gap || '24px');
+    const [layoutMode, setLayoutMode] = useState<'absolute' | 'row'>(section.content?.layoutMode || 'absolute');
     const [saving, setSaving] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
+    const [images, setImages] = useState<SectionImage[]>(section.content?.images || []);
+    const [extraImageUploading, setExtraImageUploading] = useState(false);
 
     // Update local state when section changes
     useEffect(() => {
@@ -252,7 +263,10 @@ const CustomSectionEditor: React.FC<{ section: Section, onUpdate: (s: Section) =
         setBgSize(section.content?.bgSize || 'cover');
         setBgOpacity(section.content?.bgOpacity ?? 1);
         setSectionHeight(section.content?.sectionHeight || 'auto');
-        setPaddingY(section.content?.paddingY || '64');
+        setPaddingY(section.content?.paddingY || '48');
+        setGap(section.content?.gap || '24px');
+        setLayoutMode(section.content?.layoutMode || 'absolute');
+        setImages(section.content?.images || []);
     }, [section.id, section.content]);
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -325,6 +339,67 @@ const CustomSectionEditor: React.FC<{ section: Section, onUpdate: (s: Section) =
         }
     };
 
+    const handleExtraImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            alert('Please select an image file');
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Image size must be less than 5MB');
+            return;
+        }
+
+        setExtraImageUploading(true);
+        try {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `extra_${section.id}_${Date.now()}.${fileExt}`;
+
+            const { data, error } = await supabase.storage
+                .from('section-images')
+                .upload(fileName, file, {
+                    cacheControl: '3600',
+                    upsert: true
+                });
+
+            if (error) throw error;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('section-images')
+                .getPublicUrl(fileName);
+
+            const newImage: SectionImage = {
+                id: Date.now().toString(),
+                url: publicUrl,
+                position: 'center',
+                size: 'contain',
+                zIndex: 10,
+                opacity: 1,
+                rotation: 0
+            };
+
+            setImages([...images, newImage]);
+        } catch (error: any) {
+            console.error('Upload error:', error);
+            alert('Failed to upload image: ' + error.message);
+        } finally {
+            setExtraImageUploading(false);
+        }
+    };
+
+    const handleUpdateImage = (id: string, updates: Partial<SectionImage>) => {
+        setImages(images.map(img => img.id === id ? { ...img, ...updates } : img));
+    };
+
+    const handleRemoveExtraImage = (id: string) => {
+        if (confirm('Are you sure you want to remove this image?')) {
+            setImages(images.filter(img => img.id !== id));
+        }
+    };
+
     const handleRemoveImage = () => {
         setBgImage('');
     };
@@ -342,17 +417,22 @@ const CustomSectionEditor: React.FC<{ section: Section, onUpdate: (s: Section) =
                 bgSize,
                 bgOpacity,
                 sectionHeight,
-                paddingY
+                paddingY,
+                gap,
+                images,
+                layoutMode
             };
 
-            const { error } = await supabase
-                .from('sections')
-                .update({ content: newContent })
-                .eq('id', section.id);
+            const updatedSection = { ...section, content: newContent };
 
-            if (error) throw error;
-            onUpdate({ ...section, content: newContent });
-            alert('Section updated successfully!');
+            // 1. Update Local DB
+            await db.sections.put(updatedSection);
+
+            // 2. Queue Sync
+            await addToSyncQueue('sections', 'UPDATE', updatedSection);
+
+            onUpdate(updatedSection);
+            alert('Section updated successfully (offline capable)!');
         } catch (error) {
             console.error('Error updating section:', error);
             alert('Failed to update section.');
@@ -580,6 +660,231 @@ const CustomSectionEditor: React.FC<{ section: Section, onUpdate: (s: Section) =
                         <span>200</span>
                     </div>
                 </div>
+
+                {/* Gap Control - Only for Row Layout */}
+                {layoutMode === 'row' && (
+                    <div className="col-span-full pt-4 mt-2 border-t border-slate-200 dark:border-slate-700">
+                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                            Grid Gap: {gap}
+                        </label>
+                        <input
+                            type="text"
+                            value={gap}
+                            onChange={(e) => setGap(e.target.value)}
+                            className="w-full px-3 py-2 text-sm border rounded-md border-slate-200 dark:bg-slate-700 dark:border-slate-600 focus:ring-2 focus:ring-cyan-500"
+                            placeholder="e.g. 24px, 2rem"
+                            title="Grid Gap"
+                        />
+                        <p className="text-[10px] text-slate-400 mt-1">Space between items (flex gap)</p>
+                    </div>
+                )}
+            </div>
+
+            {/* Extra Images Management */}
+            <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700">
+                <div className="flex justify-between items-center mb-4">
+                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">Extra Images</h4>
+                    <label className={`flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg cursor-pointer transition-all ${extraImageUploading ? 'bg-slate-300 cursor-not-allowed' : 'bg-cyan-600 hover:bg-cyan-700 text-white'}`}>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleExtraImageUpload}
+                            disabled={extraImageUploading}
+                            className="hidden"
+                        />
+                        {extraImageUploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <span>+ Add Image</span>}
+                    </label>
+                </div>
+
+                <div className="space-y-4">
+                    {images.map((img, index) => (
+                        <div key={img.id} className="p-3 bg-white dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700">
+                            <div className="flex gap-4 items-start">
+                                <img src={img.url} alt="" className="w-16 h-16 object-cover rounded bg-slate-100" />
+                                <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-2">
+                                    {/* Position */}
+                                    <div>
+                                        <label className="block text-[10px] text-slate-500 mb-1">Position</label>
+                                        <select
+                                            value={img.position || 'center'}
+                                            onChange={e => handleUpdateImage(img.id, { position: e.target.value })}
+                                            className="w-full px-2 py-1 text-xs border rounded dark:bg-slate-700 dark:border-slate-600"
+                                            title="Image Position"
+                                            aria-label="Image Position"
+                                        >
+                                            <option value="center">Center</option>
+                                            <option value="top">Top</option>
+                                            <option value="bottom">Bottom</option>
+                                            <option value="left">Left</option>
+                                            <option value="right">Right</option>
+                                            <option value="top left">Top Left</option>
+                                            <option value="top right">Top Right</option>
+                                            <option value="bottom left">Bottom Left</option>
+                                            <option value="bottom right">Bottom Right</option>
+                                            <option value="custom">Custom (Top/Left)</option>
+                                        </select>
+                                    </div>
+
+                                    {/* Size */}
+                                    <div>
+                                        <label className="block text-[10px] text-slate-500 mb-1">Size</label>
+                                        <select
+                                            value={img.size || 'contain'}
+                                            onChange={e => handleUpdateImage(img.id, { size: e.target.value })}
+                                            className="w-full px-2 py-1 text-xs border rounded dark:bg-slate-700 dark:border-slate-600"
+                                            title="Image Size"
+                                            aria-label="Image Size"
+                                        >
+                                            <option value="contain">Contain (Fit)</option>
+                                            <option value="cover">Cover (Fill)</option>
+                                            <option value="auto">Original Size</option>
+                                            <option value="stretch">Stretch (100% 100%)</option>
+                                            <option value="50%">50% Width</option>
+                                            <option value="25%">25% Width</option>
+                                            <option value="custom">Custom (Width/Height)</option>
+                                        </select>
+                                    </div>
+
+                                    {/* Conditional Custom Inputs */}
+                                    {img.position === 'custom' && (
+                                        <>
+                                            <div>
+                                                <label className="block text-[10px] text-slate-500 mb-1">Top</label>
+                                                <input
+                                                    type="text"
+                                                    value={img.top || ''}
+                                                    onChange={e => handleUpdateImage(img.id, { top: e.target.value })}
+                                                    className="w-full px-2 py-1 text-xs border rounded"
+                                                    placeholder="e.g. 50%"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] text-slate-500 mb-1">Left</label>
+                                                <input
+                                                    type="text"
+                                                    value={img.left || ''}
+                                                    onChange={e => handleUpdateImage(img.id, { left: e.target.value })}
+                                                    className="w-full px-2 py-1 text-xs border rounded"
+                                                    placeholder="e.g. 50%"
+                                                />
+                                            </div>
+                                        </>
+                                    )}
+
+                                    {img.size === 'custom' && (
+                                        <>
+                                            <div>
+                                                <label className="block text-[10px] text-slate-500 mb-1">Width</label>
+                                                <input
+                                                    type="text"
+                                                    value={img.width || ''}
+                                                    onChange={e => handleUpdateImage(img.id, { width: e.target.value })}
+                                                    className="w-full px-2 py-1 text-xs border rounded"
+                                                    placeholder="e.g. 200px"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] text-slate-500 mb-1">Height</label>
+                                                <input
+                                                    type="text"
+                                                    value={img.height || ''}
+                                                    onChange={e => handleUpdateImage(img.id, { height: e.target.value })}
+                                                    className="w-full px-2 py-1 text-xs border rounded"
+                                                    placeholder="auto"
+                                                />
+                                            </div>
+                                        </>
+                                    )}
+
+                                    {/* Section Height Properties for Images */}
+                                    <div className="col-span-full grid grid-cols-2 gap-2 p-2 bg-slate-50 dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-700 mt-2">
+                                        <div className="col-span-full">
+                                            <p className="text-[10px] font-bold text-slate-700 dark:text-slate-300">Image Size Control (Section-like)</p>
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] text-slate-500 mb-1">Min Height</label>
+                                            <select
+                                                value={img.minHeight || 'auto'}
+                                                onChange={e => handleUpdateImage(img.id, { minHeight: e.target.value })}
+                                                className="w-full px-2 py-1 text-xs border rounded dark:bg-slate-700 dark:border-slate-600"
+                                                title="Minimum Height"
+                                                aria-label="Minimum Height"
+                                            >
+                                                <option value="auto">Auto</option>
+                                                <option value="200px">200px</option>
+                                                <option value="300px">300px</option>
+                                                <option value="400px">400px</option>
+                                                <option value="500px">500px</option>
+                                                <option value="600px">600px</option>
+                                                <option value="100%">100%</option>
+                                                <option value="50vh">50vh</option>
+                                                <option value="100vh">100vh</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] text-slate-500 mb-1">Vert. Padding: {img.paddingY || 0}px</label>
+                                            <input
+                                                type="range"
+                                                min="0"
+                                                max="200"
+                                                step="8"
+                                                value={img.paddingY || 0}
+                                                onChange={e => handleUpdateImage(img.id, { paddingY: parseInt(e.target.value) })}
+                                                className="w-full h-1 bg-slate-200 rounded appearance-none cursor-pointer"
+                                                title="Vertical Padding"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-[10px] text-slate-500 mb-1">Z-Index</label>
+                                        <input
+                                            type="number"
+                                            value={img.zIndex || 0}
+                                            onChange={e => handleUpdateImage(img.id, { zIndex: parseInt(e.target.value) })}
+                                            className="w-full px-2 py-1 text-xs border rounded"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-[10px] text-slate-500 mb-1">Opacity: {Math.round((img.opacity ?? 1) * 100)}%</label>
+                                        <input
+                                            type="range"
+                                            min="0"
+                                            max="1"
+                                            step="0.1"
+                                            value={img.opacity ?? 1}
+                                            onChange={e => handleUpdateImage(img.id, { opacity: parseFloat(e.target.value) })}
+                                            className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-[10px] text-slate-500 mb-1">Rotation (deg)</label>
+                                        <input
+                                            type="number"
+                                            value={img.rotation || 0}
+                                            onChange={e => handleUpdateImage(img.id, { rotation: parseInt(e.target.value) })}
+                                            className="w-full px-2 py-1 text-xs border rounded"
+                                        />
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => handleRemoveExtraImage(img.id)}
+                                    className="p-1 text-red-500 hover:bg-red-50 rounded"
+                                    title="Remove Image"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                    {images.length === 0 && (
+                        <p className="text-xs text-center text-slate-500 py-4">No extra images added yet.</p>
+                    )}
+                </div>
             </div>
 
             <div>
@@ -612,15 +917,70 @@ const CustomSectionEditor: React.FC<{ section: Section, onUpdate: (s: Section) =
 };
 
 export const AdminSectionEditor: React.FC<AdminSectionEditorProps> = ({ section, onUpdate, t }) => {
-    switch (section.id) {
-        case 'hero':
-            return <AdminHero section={section} onUpdate={onUpdate} t={t} />;
-        case 'catalog':
-        case 'partners':
-            return <SimpleTextEditor section={section} onUpdate={onUpdate} />;
-        case 'about':
-            return <AboutEditor section={section} onUpdate={onUpdate} />;
-        default:
-            return <CustomSectionEditor section={section} onUpdate={onUpdate} />;
-    }
+    const [label, setLabel] = useState(section.label);
+    const [savingLabel, setSavingLabel] = useState(false);
+
+    // Sync local state when prop changes
+    useEffect(() => {
+        setLabel(section.label);
+    }, [section.label]);
+
+    const handleSaveLabel = async () => {
+        if (label === section.label) return;
+        setSavingLabel(true);
+        try {
+            await db.sections.update(section.id, { label });
+            await addToSyncQueue('sections', 'UPDATE', { id: section.id, label });
+            onUpdate({ ...section, label });
+            // Optional: alert('Label updated');
+        } catch (error) {
+            console.error('Error updating label:', error);
+            alert('Failed to update label');
+        } finally {
+            setSavingLabel(false);
+        }
+    };
+
+    const renderEditor = () => {
+        switch (section.id) {
+            case 'hero':
+                return <AdminHero section={section} onUpdate={onUpdate} t={t} />;
+            case 'catalog':
+            case 'partners':
+                return <SimpleTextEditor section={section} onUpdate={onUpdate} />;
+            case 'about':
+                return <AboutEditor section={section} onUpdate={onUpdate} />;
+            default:
+                return <CustomSectionEditor section={section} onUpdate={onUpdate} />;
+        }
+    };
+
+    return (
+        <div className="space-y-6">
+            {/* Common Section Settings */}
+            <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700 flex items-end gap-4">
+                <div className="flex-1">
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Section Label (Admin Name)</label>
+                    <input
+                        type="text"
+                        value={label}
+                        onChange={(e) => setLabel(e.target.value)}
+                        onBlur={handleSaveLabel}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSaveLabel()}
+                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-cyan-500 outline-none"
+                    />
+                </div>
+                {/* ID Display (Read Only) */}
+                <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Section ID</label>
+                    <div className="px-3 py-2 bg-slate-200 dark:bg-slate-700 rounded text-slate-500 font-mono text-sm">
+                        {section.id}
+                    </div>
+                </div>
+            </div>
+
+            {/* Specific Editor */}
+            {renderEditor()}
+        </div>
+    );
 };

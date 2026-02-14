@@ -74,7 +74,7 @@ export const SocialLinksWidget: React.FC<SocialLinksWidgetProps> = ({ links = DE
     return (
         <div
             className={`
-                fixed left-4 bottom-8 z-50 flex flex-col items-center gap-4
+                fixed left-4 bottom-8 z-50 flex flex-col-reverse items-center gap-4
                 transition-all duration-500 ease-out
                 ${isVisible
                     ? 'opacity-100 translate-x-0'
@@ -82,34 +82,6 @@ export const SocialLinksWidget: React.FC<SocialLinksWidgetProps> = ({ links = DE
                 }
             `}
         >
-            {/* Social Links - Animate in/out */}
-            <div className={`flex flex-col-reverse gap-3 transition-all duration-300 ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
-                {links.map((link, index) => (
-                    <a
-                        key={link.name}
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`
-                            w-12 h-12 rounded-full ${link.color} ${link.hoverColor}
-                            text-white shadow-lg
-                            flex items-center justify-center
-                            transition-all duration-300 ease-out
-                            hover:scale-110 hover:shadow-xl
-                            active:scale-95
-                        `}
-                        style={{
-                            transitionDelay: isOpen ? `${index * 50}ms` : '0ms',
-                            transform: isOpen ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.8)',
-                            opacity: isOpen ? 1 : 0,
-                        }}
-                        title={link.name}
-                    >
-                        {link.icon}
-                    </a>
-                ))}
-            </div>
-
             {/* Toggle Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
@@ -133,7 +105,36 @@ export const SocialLinksWidget: React.FC<SocialLinksWidgetProps> = ({ links = DE
                 )}
             </button>
 
-            {/* Pulse effect when closed */}
+            {/* Social Links - Animate in/out */}
+            <div className={`flex flex-col-reverse gap-3 transition-all duration-300 ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+                {links.map((link, index) => (
+                    <a
+                        key={link.name}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`
+                            w-12 h-12 rounded-full ${link.color} ${link.hoverColor}
+                            text-white shadow-lg
+                            flex items-center justify-center
+                            transition-all duration-300 ease-out
+                            hover:scale-110 hover:shadow-xl
+                            active:scale-95
+                        `}
+                        style={{
+                            transitionDelay: isOpen ? `${index * 50}ms` : '0ms',
+                            // Adjusted transform to slide UP from the button
+                            transform: isOpen ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.8)',
+                            opacity: isOpen ? 1 : 0,
+                        }}
+                        title={link.name}
+                    >
+                        {link.icon}
+                    </a>
+                ))}
+            </div>
+
+            {/* Pulse effect when closed - Positioned relative to button which is now first */}
             {!isOpen && isVisible && (
                 <span className="absolute bottom-0 left-0 w-14 h-14 rounded-full bg-cyan-400/30 animate-ping" />
             )}

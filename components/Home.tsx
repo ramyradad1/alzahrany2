@@ -6,6 +6,7 @@ import { Partners } from './Partners';
 import { About } from './About';
 import { CustomSection } from './CustomSection';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { BusinessDivisions } from './BusinessDivisions';
 import { Link, useNavigate } from 'react-router-dom';
 
 // Simple RevealOnScroll component if not already exported or shared
@@ -68,6 +69,8 @@ export const Home: React.FC<HomeProps> = ({ sections, products, partners, t, lan
                                     <Hero t={t} lang={lang} onShopNow={() => navigate('/catalog')} content={section.content} />
                                 </div>
                             );
+                        case 'business-divisions':
+                            return <BusinessDivisions key="business-divisions" t={t} lang={lang} />;
                         case 'catalog':
                             const catalogTitle = (lang === 'en' ? section.content?.title_en : section.content?.title_ar) || t.catalog;
                             const catalogSubtitle = (lang === 'en' ? section.content?.subtitle_en : section.content?.subtitle_ar) || "Latest additions to our inventory";

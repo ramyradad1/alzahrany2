@@ -16,12 +16,12 @@ import { CustomSection } from './components/CustomSection';
 import { ScrollToTop } from './components/ScrollToTop';
 import { ScrollToTopButton } from './components/ScrollToTopButton';
 import { SocialLinksWidget } from './components/SocialLinksWidget';
-import { SyncIndicator } from './components/admin/SyncIndicator';
 import { ProductModal } from './components/ProductModal';
 import { AboutPage } from './components/AboutPage';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Footer } from './components/Footer';
 import { BackgroundAnimation } from './components/BackgroundAnimation';
+import { BusinessDivisions } from './components/BusinessDivisions';
 import { translations } from './translations';
 import { Product, Partner, Section, Language, ProductFormData } from './types';
 import { Loader2 } from 'lucide-react';
@@ -121,6 +121,18 @@ const App = () => {
             id: 'contact_form',
             label: 'Contact Form',
             order: 5,
+            is_visible: true,
+            content: {}
+          });
+        }
+
+        // Migration: Ensure business-divisions exists
+        const businessDivisionsExists = await db.sections.get('business-divisions');
+        if (!businessDivisionsExists) {
+          await db.sections.add({
+            id: 'business-divisions',
+            label: 'Business Divisions',
+            order: 1, // Place after Hero
             is_visible: true,
             content: {}
           });
@@ -264,7 +276,6 @@ const App = () => {
         {/* Animated Background */}
         <BackgroundAnimation />
 
-        <SyncIndicator />
 
         {productModalOpen && <ProductModal product={productModalOpen} onClose={() => setProductModalOpen(null)} t={t} />}
 
@@ -300,6 +311,8 @@ const App = () => {
                       switch (section.id) {
                         case 'hero':
                           return <Hero key={section.id} t={t} lang={lang} onShopNow={() => navigate('/catalog')} content={section.content} />;
+                        case 'business-divisions':
+                          return <BusinessDivisions key={section.id} t={t} lang={lang} />;
                         case 'about':
                           return <About key={section.id} t={t} lang={lang} content={section.content} />;
                         case 'catalog':

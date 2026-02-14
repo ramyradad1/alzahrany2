@@ -75,6 +75,23 @@ export interface AboutContent {
   global_text_ar?: string;
 }
 
+export interface SectionImage {
+  id: string;
+  url: string;
+  width?: string;
+  height?: string;
+  top?: string;
+  left?: string;
+  zIndex?: number;
+  opacity?: number;
+  rotation?: number;
+  animation?: string;
+  position?: string; // 'center', 'top-left', 'bottom-right', etc.
+  size?: string;     // 'cover', 'contain', 'auto', '50%', etc.
+  minHeight?: string; // Added for extra image height control
+  paddingY?: number;  // Added for extra image vertical padding
+}
+
 export interface CustomContent {
   title_en?: string;
   title_ar?: string;
@@ -82,6 +99,14 @@ export interface CustomContent {
   bgColor?: string;
   bgImage?: string;
   textColor?: string;
+  bgPosition?: string;
+  bgSize?: string;
+  bgOpacity?: number;
+  paddingY?: string;
+  sectionHeight?: string;
+  images?: SectionImage[];
+  layoutMode?: 'absolute' | 'row' | 'grid'; // 'absolute' is legacy default
+  gap?: string; // Added for row/grid layout spacing
 }
 
 export type SectionContent = HeroContent | CatalogContent | PartnersContent | AboutContent | CustomContent | any;

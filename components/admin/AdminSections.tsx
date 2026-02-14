@@ -7,6 +7,8 @@ import { GripVertical, Eye, EyeOff, Edit, ChevronUp, Plus, Trash2, Loader2, Save
 import { AdminSectionEditor } from './AdminSectionEditor';
 import { db } from '../../src/db';
 import { addToSyncQueue } from '../../src/services/syncQueue';
+import { syncSections } from '../../src/services/dbSync';
+import { RefreshCw } from 'lucide-react';
 
 interface AdminSectionsProps {
     sections: Section[];
@@ -99,6 +101,7 @@ export const AdminSections: React.FC<AdminSectionsProps> = ({ sections, onUpdate
     const [adding, setAdding] = useState(false);
     const [hasOrderChanged, setHasOrderChanged] = useState(false);
     const [savingOrder, setSavingOrder] = useState(false);
+    const [syncing, setSyncing] = useState(false);
 
     // Local state for drag-and-drop
     const [localSections, setLocalSections] = useState<Section[]>(sections);
@@ -221,6 +224,19 @@ export const AdminSections: React.FC<AdminSectionsProps> = ({ sections, onUpdate
         }
     };
 
+    const handleForceSync = async () => {
+        setSyncing(true);
+        try {
+            await syncSections();
+            // Optional: alert('Synced');
+        } catch (error) {
+            console.error('Sync failed:', error);
+            alert('Sync failed');
+        } finally {
+            setSyncing(false);
+        }
+    };
+
     return (
         <div className="animate-fade-in-up max-w-3xl mx-auto">
             {/* Page Sections */}
@@ -232,14 +248,25 @@ export const AdminSections: React.FC<AdminSectionsProps> = ({ sections, onUpdate
                             Manage standard and custom sections.
                         </p>
                     </div>
-                    <button
-                        onClick={handleAddSection}
-                        disabled={adding}
-                        className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg font-medium transition disabled:opacity-50"
-                    >
-                        {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                        Add Section
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handleForceSync}
+                            disabled={syncing || adding}
+                            className="flex items-center gap-2 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-600 px-3 py-2 rounded-lg font-medium transition disabled:opacity-50"
+                            title="Force Sync from Server"
+                        >
+                            <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+                            Sync
+                        </button>
+                        <button
+                            onClick={handleAddSection}
+                            disabled={adding}
+                            className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg font-medium transition disabled:opacity-50"
+                        >
+                            {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                            Add Section
+                        </button>
+                    </div>
                 </div>
 
                 {/* Save Order Button - shows when order changed */}
