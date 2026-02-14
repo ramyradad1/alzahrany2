@@ -63,6 +63,8 @@ const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
                     onClick={() => setIsExpanded(!isExpanded)}
                     className={`p-1 hover:bg-slate-200 dark:hover:bg-slate-500 rounded ${!hasChildren && !item.children ? 'opacity-0' : ''}`}
                     disabled={!hasChildren && !item.children}
+                    title={isExpanded ? "Collapse" : "Expand"}
+                    aria-label={isExpanded ? "Collapse" : "Expand"}
                 >
                     <ChevronRight className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
                 </button>
@@ -73,6 +75,8 @@ const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
                         onClick={() => onMove(item.id, 'up')}
                         disabled={index === 0}
                         className="p-0.5 hover:bg-slate-200 dark:hover:bg-slate-500 rounded disabled:opacity-30"
+                        title="Move Up"
+                        aria-label="Move Up"
                     >
                         <ChevronUp className="w-3 h-3" />
                     </button>
@@ -80,6 +84,8 @@ const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
                         onClick={() => onMove(item.id, 'down')}
                         disabled={index === totalItems - 1}
                         className="p-0.5 hover:bg-slate-200 dark:hover:bg-slate-500 rounded disabled:opacity-30"
+                        title="Move Down"
+                        aria-label="Move Down"
                     >
                         <ChevronDown className="w-3 h-3" />
                     </button>
@@ -92,6 +98,7 @@ const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
                     onChange={(e) => onUpdate(item.id, 'label', e.target.value)}
                     placeholder="Label (EN)"
                     className="flex-1 px-2 py-1 border rounded text-sm dark:bg-slate-600 dark:border-slate-500 dark:text-white min-w-0"
+                    title="Label (English)"
                 />
 
                 {/* Label AR */}
@@ -99,9 +106,10 @@ const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
                     type="text"
                     value={item.labelAr}
                     onChange={(e) => onUpdate(item.id, 'labelAr', e.target.value)}
-                    placeholder="AR"
+                    placeholder="Label (AR)"
                     className="w-24 px-2 py-1 border rounded text-sm dark:bg-slate-600 dark:border-slate-500 dark:text-white text-right"
                     dir="rtl"
+                    title="Label (Arabic)"
                 />
 
                 {/* URL */}
@@ -111,6 +119,7 @@ const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
                     onChange={(e) => onUpdate(item.id, 'href', e.target.value)}
                     placeholder="URL"
                     className="w-28 px-2 py-1 border rounded text-sm dark:bg-slate-600 dark:border-slate-500 dark:text-white"
+                    title="URL"
                 />
 
                 {/* Icon Controller */}
@@ -137,6 +146,7 @@ const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
                     }}
                     className="p-1 text-cyan-600 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 rounded"
                     title="Add sub-item"
+                    aria-label="Add sub-item"
                 >
                     <Plus className="w-4 h-4" />
                 </button>
@@ -145,6 +155,8 @@ const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
                 <button
                     onClick={() => onDelete(item.id)}
                     className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                    title="Delete Item"
+                    aria-label="Delete Item"
                 >
                     <Trash2 className="w-4 h-4" />
                 </button>
@@ -400,6 +412,7 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
                                 onClick={() => setEditingIcon({ id: 'logo_url', icon: config.logo_url })}
                                 className="px-3 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg transition-colors"
                                 title="Upload Image"
+                                aria-label="Upload Image"
                             >
                                 <Upload className="w-4 h-4" />
                             </button>
@@ -478,6 +491,7 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
                                 onClick={() => setEditingIcon({ id: 'favicon_url', icon: config.favicon_url || '' })}
                                 className="px-3 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors"
                                 title="Upload Image"
+                                aria-label="Upload Image"
                             >
                                 <Upload className="w-4 h-4" />
                             </button>
@@ -621,6 +635,8 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
                             <button
                                 onClick={() => setEditingIcon(null)}
                                 className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-red-500 transition-colors"
+                                title="Close"
+                                aria-label="Close"
                             >
                                 <X className="w-4 h-4" />
                             </button>

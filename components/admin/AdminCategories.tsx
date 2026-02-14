@@ -105,7 +105,7 @@ export const AdminCategories: React.FC<AdminCategoriesProps> = ({ lang }) => {
                 >
                     <div className="flex items-center gap-3 overflow-hidden">
                         {hasChildren ? (
-                            <button onClick={() => toggleExpand(node.id)} className="text-slate-400 hover:text-cyan-500">
+                            <button onClick={() => toggleExpand(node.id)} className="text-slate-400 hover:text-cyan-500" title={isExpanded ? "Collapse" : "Expand"}>
                                 {isExpanded ? <FolderOpen className="w-5 h-5" /> : <Folder className="w-5 h-5" />}
                             </button>
                         ) : (
@@ -126,12 +126,16 @@ export const AdminCategories: React.FC<AdminCategoriesProps> = ({ lang }) => {
                         <button 
                             onClick={() => startEdit(node)}
                             className="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg"
+                            title="Edit Category"
+                            aria-label="Edit Category"
                         >
                             <Edit className="w-4 h-4" />
                         </button>
                         <button 
                             onClick={() => handleDelete(node.id)}
                             className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                            title="Delete Category"
+                            aria-label="Delete Category"
                         >
                             <Trash2 className="w-4 h-4" />
                         </button>
@@ -191,6 +195,8 @@ export const AdminCategories: React.FC<AdminCategoriesProps> = ({ lang }) => {
                                 value={formData.name_en}
                                 onChange={e => setFormData({...formData, name_en: e.target.value})}
                                 className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 focus:ring-2 focus:ring-cyan-500 outline-none"
+                                placeholder="Category Name (English)"
+                                title="Category Name (English)"
                             />
                         </div>
                         <div dir="rtl">
@@ -200,6 +206,8 @@ export const AdminCategories: React.FC<AdminCategoriesProps> = ({ lang }) => {
                                 value={formData.name_ar}
                                 onChange={e => setFormData({...formData, name_ar: e.target.value})}
                                 className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 focus:ring-2 focus:ring-cyan-500 outline-none"
+                                placeholder="اسم الفئة (عربي)"
+                                title="اسم الفئة (عربي)"
                             />
                         </div>
 
@@ -209,6 +217,8 @@ export const AdminCategories: React.FC<AdminCategoriesProps> = ({ lang }) => {
                                 value={formData.parent_id || ''}
                                 onChange={e => setFormData({...formData, parent_id: e.target.value ? Number(e.target.value) : null})}
                                 className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-600 focus:ring-2 focus:ring-cyan-500 outline-none"
+                                title="Select Parent Category"
+                                aria-label="Select Parent Category"
                             >
                                 <option value="">(None - Root Category)</option>
                                 {categories

@@ -52,6 +52,8 @@ const SimpleTextEditor: React.FC<{ section: Section, onUpdate: (s: Section) => v
                         value={content.title_en || ''}
                         onChange={e => setContent({ ...content, title_en: e.target.value })}
                         className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none"
+                        placeholder="English Title"
+                        title="English Title"
                     />
                     <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">English Subtitle</label>
                     <textarea
@@ -59,6 +61,8 @@ const SimpleTextEditor: React.FC<{ section: Section, onUpdate: (s: Section) => v
                         value={content.subtitle_en || ''}
                         onChange={e => setContent({ ...content, subtitle_en: e.target.value })}
                         className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none resize-none"
+                        placeholder="English Subtitle"
+                        title="English Subtitle"
                     />
 
                     {/* Category Selector for Catalog */}
@@ -71,6 +75,8 @@ const SimpleTextEditor: React.FC<{ section: Section, onUpdate: (s: Section) => v
                                 value={content.selectedCategory || 'All'}
                                 onChange={e => setContent({ ...content, selectedCategory: e.target.value })}
                                 className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none"
+                                title="Select Default Category"
+                                aria-label="Select Default Category"
                             >
                                 <option value="All">All Categories</option>
                                 {categories.map(cat => (
@@ -90,6 +96,8 @@ const SimpleTextEditor: React.FC<{ section: Section, onUpdate: (s: Section) => v
                         value={content.title_ar || ''}
                         onChange={e => setContent({ ...content, title_ar: e.target.value })}
                         className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none"
+                        placeholder="العنوان بالعربية"
+                        title="العنوان بالعربية"
                     />
                     <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">الوصف بالعربية</label>
                     <textarea
@@ -97,6 +105,8 @@ const SimpleTextEditor: React.FC<{ section: Section, onUpdate: (s: Section) => v
                         value={content.subtitle_ar || ''}
                         onChange={e => setContent({ ...content, subtitle_ar: e.target.value })}
                         className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none resize-none"
+                        placeholder="الوصف بالعربية"
+                        title="الوصف بالعربية"
                     />
                 </div>
             </div>
@@ -147,11 +157,11 @@ const AboutEditor: React.FC<{ section: Section, onUpdate: (s: Section) => void }
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs uppercase font-bold text-slate-500 mb-1">English</label>
-                            <input type="text" value={content.title_en || ''} onChange={e => setContent({ ...content, title_en: e.target.value })} className="w-full p-2 border rounded dark:bg-slate-800 dark:border-slate-600" />
+                            <input type="text" value={content.title_en || ''} onChange={e => setContent({ ...content, title_en: e.target.value })} className="w-full p-2 border rounded dark:bg-slate-800 dark:border-slate-600" placeholder="English Title" title="English Title" />
                         </div>
                         <div dir="rtl">
                             <label className="block text-xs uppercase font-bold text-slate-500 mb-1">العربية</label>
-                            <input type="text" value={content.title_ar || ''} onChange={e => setContent({ ...content, title_ar: e.target.value })} className="w-full p-2 border rounded dark:bg-slate-800 dark:border-slate-600" />
+                            <input type="text" value={content.title_ar || ''} onChange={e => setContent({ ...content, title_ar: e.target.value })} className="w-full p-2 border rounded dark:bg-slate-800 dark:border-slate-600" placeholder="العنوان بالعربية" title="العنوان بالعربية" />
                         </div>
                     </div>
                 </div>
@@ -362,6 +372,7 @@ const CustomSectionEditor: React.FC<{ section: Section, onUpdate: (s: Section) =
                             value={bgColor}
                             onChange={(e) => setBgColor(e.target.value)}
                             className="h-10 w-20 rounded cursor-pointer border border-slate-200"
+                            title="Background Color"
                         />
                         <span className="text-xs text-slate-500 font-mono">{bgColor}</span>
                     </div>
@@ -374,6 +385,7 @@ const CustomSectionEditor: React.FC<{ section: Section, onUpdate: (s: Section) =
                             value={textColor}
                             onChange={(e) => setTextColor(e.target.value)}
                             className="h-10 w-20 rounded cursor-pointer border border-slate-200"
+                            title="Text Color"
                         />
                         <span className="text-xs text-slate-500 font-mono">{textColor}</span>
                     </div>
@@ -448,6 +460,7 @@ const CustomSectionEditor: React.FC<{ section: Section, onUpdate: (s: Section) =
                             onChange={(e) => setBgImage(e.target.value)}
                             className="w-full px-3 py-2 text-xs border rounded-md border-slate-200 dark:bg-slate-700 dark:border-slate-600 focus:ring-2 focus:ring-cyan-500"
                             placeholder="Or paste image URL..."
+                            title="Background Image URL"
                         />
                     </div>
                 </div>
@@ -465,6 +478,8 @@ const CustomSectionEditor: React.FC<{ section: Section, onUpdate: (s: Section) =
                             value={bgPosition}
                             onChange={(e) => setBgPosition(e.target.value)}
                             className="w-full px-3 py-2 text-sm border rounded-md border-slate-200 dark:bg-slate-700 dark:border-slate-600 focus:ring-2 focus:ring-cyan-500"
+                            title="Background Position"
+                            aria-label="Background Position"
                         >
                             <option value="center">Center</option>
                             <option value="top">Top</option>
@@ -485,6 +500,8 @@ const CustomSectionEditor: React.FC<{ section: Section, onUpdate: (s: Section) =
                             value={bgSize}
                             onChange={(e) => setBgSize(e.target.value)}
                             className="w-full px-3 py-2 text-sm border rounded-md border-slate-200 dark:bg-slate-700 dark:border-slate-600 focus:ring-2 focus:ring-cyan-500"
+                            title="Background Size"
+                            aria-label="Background Size"
                         >
                             <option value="cover">Cover (Fill)</option>
                             <option value="contain">Contain (Fit)</option>
@@ -510,6 +527,7 @@ const CustomSectionEditor: React.FC<{ section: Section, onUpdate: (s: Section) =
                                 value={bgOpacity}
                                 onChange={(e) => setBgOpacity(parseFloat(e.target.value))}
                                 className="w-full h-2 bg-slate-200 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                                title="Background Opacity"
                             />
                         </div>
                     </div>
@@ -527,6 +545,8 @@ const CustomSectionEditor: React.FC<{ section: Section, onUpdate: (s: Section) =
                         value={sectionHeight}
                         onChange={(e) => setSectionHeight(e.target.value)}
                         className="w-full px-3 py-2 text-sm border rounded-md border-slate-200 dark:bg-slate-700 dark:border-slate-600 focus:ring-2 focus:ring-cyan-500"
+                        title="Section Height"
+                        aria-label="Section Height"
                     >
                         <option value="auto">Auto (fit content)</option>
                         <option value="200px">Small (200px)</option>
@@ -552,6 +572,7 @@ const CustomSectionEditor: React.FC<{ section: Section, onUpdate: (s: Section) =
                         value={paddingY}
                         onChange={(e) => setPaddingY(e.target.value)}
                         className="w-full h-2 bg-slate-200 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                        title="Vertical Padding"
                     />
                     <div className="flex justify-between text-xs text-slate-400 mt-1">
                         <span>0</span>

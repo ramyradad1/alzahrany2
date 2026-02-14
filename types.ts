@@ -48,6 +48,7 @@ export interface CatalogContent {
   title_ar?: string;
   subtitle_en?: string;
   subtitle_ar?: string;
+  selectedCategory?: string;
 }
 
 export interface PartnersContent {

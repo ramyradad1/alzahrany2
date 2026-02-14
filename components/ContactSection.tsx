@@ -85,8 +85,9 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ t, lang, content
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t.contactName}</label>
+                <label htmlFor="contact-name" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t.contactName}</label>
                 <input
+                  id="contact-name"
                   type="text"
                   name="name"
                   required
@@ -96,8 +97,9 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ t, lang, content
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t.contactEmail}</label>
+                <label htmlFor="contact-email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t.contactEmail}</label>
                 <input
+                  id="contact-email"
                   type="email"
                   name="email"
                   required
@@ -108,8 +110,9 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ t, lang, content
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t.contactSubject}</label>
+              <label htmlFor="contact-subject" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t.contactSubject}</label>
               <input
+                id="contact-subject"
                 type="text"
                 name="subject"
                 required
@@ -119,8 +122,9 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ t, lang, content
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t.contactMessage}</label>
+              <label htmlFor="contact-message" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t.contactMessage}</label>
               <textarea
+                id="contact-message"
                 name="message"
                 required
                 rows={4}

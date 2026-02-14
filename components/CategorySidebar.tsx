@@ -46,43 +46,47 @@ const CategoryItem: React.FC<{
     <div className="select-none">
       <div 
         className={`
-          flex items-center justify-between px-3 py-2 cursor-pointer transition-colors rounded-lg mb-0.5
+          flex items-center justify-between px-3 py-2 rounded-lg mb-0.5 transition-colors
           ${isActive 
-            ? 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-400 font-bold' 
-            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                  ? 'bg-cyan-50 dark:bg-cyan-900/20'
+                  : 'hover:bg-slate-50 dark:hover:bg-slate-800'
           }
         `}
-        // eslint-disable-next-line
         style={{ paddingLeft: `${level * 12 + 12}px` }}
-        onClick={(e) => {
-           e.stopPropagation();
-           // If node has an href with ?category=X, extract X.
-           let categoryToSelect = name;
-           if (node.href && node.href.includes('category=')) {
-               const params = new URLSearchParams(node.href.split('?')[1]);
-               const cat = params.get('category');
-               if (cat) categoryToSelect = cat;
-           }
-           onSelectCategory(categoryToSelect);
-           if (hasChildren) setIsExpanded(!isExpanded);
-        }}
-      >
-        <div className="flex items-center gap-2 overflow-hidden">
+          >
+              <div
+                  role="button"
+                  tabIndex={0}
+                  className={`flex-1 flex items-center gap-2 overflow-hidden text-left ${isActive ? 'text-cyan-700 dark:text-cyan-400 font-bold' : 'text-slate-600 dark:text-slate-400'}`}
+                  onClick={(e) => {
+                      e.stopPropagation();
+                      let categoryToSelect = name;
+                      if (node.href && node.href.includes('category=')) {
+                          const params = new URLSearchParams(node.href.split('?')[1]);
+                          const cat = params.get('category');
+                          if (cat) categoryToSelect = cat;
+                      }
+                      onSelectCategory(categoryToSelect);
+                      if (hasChildren) setIsExpanded(!isExpanded);
+                  }}
+              >
           {hasChildren ? (
             isExpanded ? <FolderOpen className="w-4 h-4 text-cyan-500 flex-shrink-0" /> : <Folder className="w-4 h-4 text-slate-400 flex-shrink-0" />
           ) : (
-            <div className="w-4 h-4" /> // Spacer
+                          <div className="w-4 h-4" />
           )}
           <span className="truncate">{name}</span>
-        </div>
+              </div>
         
         {hasChildren && (
           <button 
+                      type="button"
             onClick={(e) => {
               e.stopPropagation();
               setIsExpanded(!isExpanded);
             }}
-            className="p-1 hover:bg-black/5 dark:hover:bg-white/5 rounded-full"
+                      className="p-1 hover:bg-black/5 dark:hover:bg-white/5 rounded-full text-slate-400"
+                      aria-label={isExpanded ? "Collapse" : "Expand"}
           >
             {isExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5 rtl:rotate-180" />}
           </button>

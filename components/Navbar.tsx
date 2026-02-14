@@ -257,45 +257,48 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       // 3. Generalized: Inject ALL top-level categories into matching menu items
       // This will handle "Chemicals", "Equipments", "Brands", etc. automatically
-      categoryTree.forEach(cat => {
-        const catLabelEn = cat.label?.toLowerCase();
-        const catLabelAr = cat.labelAr?.toLowerCase(); // Assuming labelAr is populated in tree
+      // 3. Recursive: Inject ALL categories (deep search) into matching menu items
+      // This finds "Chemicals" even if it's nested under "Website" or other categories
+      const injectCategoriesRecursive = (nodes: MenuItem[]) => {
+        nodes.forEach(cat => {
+          const catLabelEn = cat.label?.toLowerCase();
+          const catLabelAr = cat.labelAr?.toLowerCase();
 
-        const menuItem = items.find((i: MenuItem) => {
-          const itemLabel = i.label?.toLowerCase();
-          const itemLabelAr = i.labelAr?.toLowerCase();
+          const menuItem = items.find((i: MenuItem) => {
+            const itemLabel = i.label?.toLowerCase();
+            const itemLabelAr = i.labelAr?.toLowerCase();
 
-          return (itemLabel === catLabelEn) ||
-            (itemLabelAr && catLabelAr && itemLabelAr === catLabelAr) ||
-            (itemLabel === catLabelEn?.replace(/s$/, '')) || // Match singular/plural?
-            (catLabelEn === itemLabel?.replace(/s$/, ''));
-        });
+            return (itemLabel === catLabelEn) ||
+              (itemLabelAr && catLabelAr && itemLabelAr === catLabelAr) ||
+              (itemLabel === catLabelEn + 's') ||
+              (catLabelEn === itemLabel + 's') ||
+              (itemLabel === catLabelEn?.replace(/s$/, '')) ||
+              (catLabelEn === itemLabel?.replace(/s$/, ''));
+          });
 
-        if (menuItem) {
-          // Update href to point to the category if it's just a placeholder or generic
-          if (menuItem.href === '#' || menuItem.href === '' || menuItem.href === '/') {
-            menuItem.href = `/catalog?category=${encodeURIComponent(cat.label)}`;
+          if (menuItem) {
+            // Update href to point to the category if it's just a placeholder or generic
+            if (menuItem.href === '#' || menuItem.href === '' || menuItem.href === '/') {
+              menuItem.href = `/catalog?category=${encodeURIComponent(cat.label)}`;
+            }
+
+            // Inject children if they exist
+            // Important: We use thechildren from the DB tree which are already formatted with hrefs
+            if (cat.children && cat.children.length > 0) {
+              menuItem.children = cat.children;
+            }
           }
 
-          // Helper to fix hrefs recursively
-          const fixHrefs = (nodes: MenuItem[]) => {
-            nodes.forEach(node => {
-              if (!node.href || node.href === '#') {
-                node.href = `/catalog?category=${encodeURIComponent(node.label)}`;
-              }
-              if (node.children) fixHrefs(node.children);
-            });
-          };
-
-          // Inject children if they exist
+          // Continue recursion to find other matches (e.g. "Equipments" inside "Website")
           if (cat.children && cat.children.length > 0) {
-            // If menu item already has children (e.g. from config), we might want to merge or replace.
-            // For now, let's assume the DB category tree is the source of truth for dropdowns.
-            menuItem.children = cat.children;
-            fixHrefs(menuItem.children);
+            injectCategoriesRecursive(cat.children);
           }
-        }
-      });
+        });
+      };
+
+      if (categoryTree && categoryTree.length > 0) {
+        injectCategoriesRecursive(categoryTree);
+      }
     }
 
     return items;

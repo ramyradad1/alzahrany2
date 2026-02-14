@@ -264,7 +264,7 @@ export const AdminProducts: React.FC<AdminProductsProps> = ({ products, onAdd, o
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                                     {isAdding ? t.addItem : t.editItem}
                                 </h3>
-                                <button onClick={cancelForm} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                                <button onClick={cancelForm} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors" title="Close" aria-label="Close">
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
@@ -279,6 +279,8 @@ export const AdminProducts: React.FC<AdminProductsProps> = ({ products, onAdd, o
                                         value={formData.name}
                                         onChange={e => setFormData({ ...formData, name: e.target.value })}
                                         className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none text-slate-900 dark:text-white transition-all text-left rtl:text-right"
+                                        placeholder={t.name}
+                                        title={t.name}
                                     />
                                 </div>
 
@@ -293,6 +295,7 @@ export const AdminProducts: React.FC<AdminProductsProps> = ({ products, onAdd, o
                                             onChange={e => setFormData({ ...formData, price: e.target.value })}
                                             placeholder="On Request"
                                             className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none text-slate-900 dark:text-white transition-all text-left rtl:text-right placeholder-slate-400"
+                                            title={t.price}
                                         />
                                     </div>
                                     <div>
@@ -310,6 +313,8 @@ export const AdminProducts: React.FC<AdminProductsProps> = ({ products, onAdd, o
                                                 });
                                             }}
                                             className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none text-slate-900 dark:text-white transition-all text-left rtl:text-right"
+                                            title={t.category}
+                                            aria-label={t.category}
                                         >
                                             <option value="">{lang === 'en' ? "Select Category" : "اختر الفئة"}</option>
                                             {categories.map(cat => {
@@ -336,6 +341,8 @@ export const AdminProducts: React.FC<AdminProductsProps> = ({ products, onAdd, o
                                         value={formData.description}
                                         onChange={e => setFormData({ ...formData, description: e.target.value })}
                                         className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none resize-none text-slate-900 dark:text-white transition-all text-left rtl:text-right"
+                                        placeholder={t.description}
+                                        title={t.description}
                                     />
                                 </div>
 
@@ -379,6 +386,8 @@ export const AdminProducts: React.FC<AdminProductsProps> = ({ products, onAdd, o
                                                     type="button"
                                                     onClick={() => handleRemoveSpec(index)}
                                                     className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                                                    title="Remove Specification"
+                                                    aria-label="Remove Specification"
                                                 >
                                                     <X className="w-4 h-4" />
                                                 </button>
@@ -451,6 +460,8 @@ export const AdminProducts: React.FC<AdminProductsProps> = ({ products, onAdd, o
                                                     type="button"
                                                     onClick={() => handleRemoveGalleryImage(idx)}
                                                     className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    title="Remove Image"
+                                                    aria-label="Remove Image"
                                                 >
                                                     <X className="w-3 h-3" />
                                                 </button>
