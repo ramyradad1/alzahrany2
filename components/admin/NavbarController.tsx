@@ -447,6 +447,7 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
                                             value={config.logo_size || 40}
                                             onChange={(e) => setConfig({ ...config, logo_size: parseInt(e.target.value) })}
                                             className="w-full accent-cyan-500"
+                                            aria-label="Logo Size"
                                         />
                                     </div>
 
@@ -525,6 +526,7 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
                                         value={config.favicon_size || 32}
                                         onChange={(e) => setConfig({ ...config, favicon_size: parseInt(e.target.value) })}
                                         className="w-full accent-purple-500"
+                                        aria-label="Favicon Size"
                                     />
                                 </div>
                             </div>
@@ -544,8 +546,9 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
                 </h4>
                 <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium mb-2 text-slate-600 dark:text-slate-400">English</label>
+                        <label htmlFor="site-name-en" className="block text-sm font-medium mb-2 text-slate-600 dark:text-slate-400">English</label>
                         <input
+                            id="site-name-en"
                             type="text"
                             value={config.site_name}
                             onChange={(e) => setConfig({ ...config, site_name: e.target.value })}
@@ -553,8 +556,9 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium mb-2 text-slate-600 dark:text-slate-400">Arabic</label>
+                        <label htmlFor="site-name-ar" className="block text-sm font-medium mb-2 text-slate-600 dark:text-slate-400">Arabic</label>
                         <input
+                            id="site-name-ar"
                             type="text"
                             value={config.site_name_ar}
                             onChange={(e) => setConfig({ ...config, site_name_ar: e.target.value })}

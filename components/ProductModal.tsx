@@ -178,8 +178,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, t 
           {/* Premium Tech Specs Card */}
           {product.specifications && product.specifications.length > 0 && (
             <div
-              className="mb-8 bg-slate-900 rounded-xl p-6 border border-slate-700/50 shadow-xl overflow-hidden relative animate-fade-in-up"
-              style={{ animationDelay: '0.1s', animationFillMode: 'both' }}
+              className="mb-8 bg-slate-900 rounded-xl p-6 border border-slate-700/50 shadow-xl overflow-hidden relative animate-fade-in-up delay-100 [animation-fill-mode:both]"
             >
               {/* Subtle accent glow */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2"></div>

@@ -182,7 +182,7 @@ export const AdminCategories: React.FC<AdminCategoriesProps> = ({ lang }) => {
                         <h3 className="font-bold text-lg text-slate-800 dark:text-white">
                             {isAdding ? 'New Category' : 'Edit Category'}
                         </h3>
-                        <button onClick={resetForm} className="text-slate-400 hover:text-slate-600">
+                        <button onClick={resetForm} className="text-slate-400 hover:text-slate-600" title="Close">
                             <X className="w-5 h-5" />
                         </button>
                     </div>

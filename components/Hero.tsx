@@ -83,8 +83,7 @@ export const Hero: React.FC<HeroProps> = ({ t, lang, onShopNow, content }) => {
           </div>
 
           <h1
-            className="text-4xl md:text-6xl lg:text-8xl font-black mb-10 leading-[1.1] tracking-tight animate-fade-in-up"
-            style={{ animationDelay: '0.1s' }}
+            className="text-4xl md:text-6xl lg:text-8xl font-black mb-10 leading-[1.1] tracking-tight animate-fade-in-up delay-100"
           >
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-cyan-800 to-cyan-600 dark:from-white dark:via-cyan-200 dark:to-cyan-500">
               Arkan-Labtech
@@ -92,16 +91,14 @@ export const Hero: React.FC<HeroProps> = ({ t, lang, onShopNow, content }) => {
           </h1>
 
           <p
-            className="text-lg md:text-2xl text-slate-600 dark:text-slate-300 mb-10 md:mb-14 leading-relaxed max-w-3xl mx-auto animate-fade-in-up font-medium px-4"
-            style={{ animationDelay: '0.2s' }}
+            className="text-lg md:text-2xl text-slate-600 dark:text-slate-300 mb-10 md:mb-14 leading-relaxed max-w-3xl mx-auto animate-fade-in-up font-medium px-4 delay-200"
           >
             <span className="block font-bold mb-4 tracking-wider text-slate-800 dark:text-cyan-400">CHEMICALS - GLASSWARE - EQUIPMENT</span>
             A pioneer distributor in the field of Chemicals, Laboratory, and Medical Instruments as well as Consumables & Diagnostics in the Kingdom of Saudi Arabia.
           </p>
 
           <div
-            className="flex flex-col sm:flex-row gap-6 justify-center items-center animate-fade-in-up"
-            style={{ animationDelay: '0.3s' }}
+            className="flex flex-col sm:flex-row gap-6 justify-center items-center animate-fade-in-up delay-300"
           >
             <button
               onClick={onShopNow}
@@ -124,7 +121,7 @@ export const Hero: React.FC<HeroProps> = ({ t, lang, onShopNow, content }) => {
       </div>
 
       {/* Scroll Indicator */}
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 text-slate-400 dark:text-slate-500 animate-bounce">
+      <div className="absolute bottom-10 w-full flex justify-center z-20 text-slate-400 dark:text-slate-500 animate-bounce">
         <ChevronDown className="w-10 h-10 opacity-60 hover:opacity-100 transition-opacity cursor-pointer" onClick={onShopNow} />
       </div>
     </div>
