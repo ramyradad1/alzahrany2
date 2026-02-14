@@ -122,44 +122,7 @@ export const About: React.FC<AboutProps> = ({ t, content, lang = 'en' }) => {
         </div>
       </div>
 
-      {/* History Timeline Section */}
-      <div className="mb-24 relative">
-        <h3 className="text-3xl font-bold text-center mb-16 text-slate-900 dark:text-white">{t.aboutHistory}</h3>
 
-        <div className="max-w-3xl mx-auto relative px-4">
-          {/* Vertical Center Line */}
-          <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-transparent via-cyan-500/50 to-transparent md:-translate-x-1/2"></div>
-
-          <div className="space-y-12">
-            {TIMELINE_EVENTS.map((event, index) => (
-              <div key={index} className={`relative flex flex-col md:flex-row gap-8 md:gap-0 ${index % 2 === 0 ? 'md:flex-row-reverse' : ''} items-start md:items-center group`}>
-
-                {/* Timeline Dot */}
-                <div className="absolute left-4 md:left-1/2 w-4 h-4 bg-white dark:bg-slate-900 border-4 border-cyan-500 rounded-full md:-translate-x-1/2 z-10 shadow-[0_0_15px_rgba(6,182,212,0.5)] group-hover:scale-125 transition-transform duration-300 mt-1.5 md:mt-0"></div>
-
-                {/* Content Spacer */}
-                <div className="w-full md:w-1/2"></div>
-
-                {/* Content Box */}
-                <div className="w-full md:w-1/2 pl-12 md:pl-0 md:px-10">
-                  <div className={`p-6 bg-white dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-all duration-300 relative ${index % 2 === 0 ? 'md:text-left' : 'md:text-right rtl:md:text-left'}`}>
-                    <span className="inline-block px-3 py-1 mb-2 text-sm font-bold text-cyan-600 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-900/20 rounded-full">
-                      {event.year}
-                    </span>
-                    <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{event.title}</h4>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
-                      {event.desc}
-                    </p>
-
-                    {/* Arrow connecting to line */}
-                    <div className={`hidden md:block absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white dark:bg-slate-800/50 border-t border-r border-slate-100 dark:border-slate-700 rotate-45 ${index % 2 === 0 ? '-right-2 border-r border-t bg-inherit' : '-left-2 border-l border-b bg-inherit rotate-[225deg]'}`}></div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
 
       {/* Stats Section Integrated */}
       <div className="mb-20">

@@ -98,24 +98,7 @@ const DEFAULT_SECTIONS = [
       html: '<div class="text-center"><h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">Contact Us</h2><p class="text-gray-600 dark:text-gray-300">Get in touch with us related to potential business cases.</p></div>'
     }
   },
-  {
-    id: 'suppliers',
-    label: 'Suppliers',
-    order: 25,
-    is_visible: true,
-    content: {
-      html: '<h2 class="text-3xl font-bold text-center mb-12 text-slate-800 dark:text-slate-200">Some of our suppliers</h2>',
-      layoutMode: 'row',
-      sectionHeight: 'auto',
-      bgColor: '#ffffff',
-      paddingY: '48',
-      gap: '80px', // Increased gap for better spacing
-      images: [
-        { id: 'sup1', url: '/images/suppliers_1.jpg', width: '600px', height: 'auto' },
-        { id: 'sup2', url: '/images/suppliers_2.jpg', width: '600px', height: 'auto' }
-      ]
-    }
-  }
+
 ];
 
 async function seedSections() {
