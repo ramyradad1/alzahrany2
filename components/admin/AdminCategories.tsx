@@ -100,8 +100,8 @@ export const AdminCategories: React.FC<AdminCategoriesProps> = ({ lang }) => {
         return (
             <div key={node.id} className="select-none">
                 <div 
-                    className={`flex items-center justify-between p-3 border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${depth > 0 ? 'bg-slate-50/50 dark:bg-slate-900/20' : ''}`}
-                    style={{ paddingLeft: `${depth * 20 + 12}px` }}
+                    className={`flex items-center justify-between p-3 border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${depth > 0 ? 'bg-slate-50/50 dark:bg-slate-900/20' : ''} pl-[length:var(--indent)]`}
+                    style={{ '--indent': `${depth * 20 + 12}px` } as React.CSSProperties}
                 >
                     <div className="flex items-center gap-3 overflow-hidden">
                         {hasChildren ? (

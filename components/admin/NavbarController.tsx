@@ -432,8 +432,8 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
                                 <img
                                     src={config.logo_url}
                                     alt="Logo Preview"
-                                    style={{ width: config.logo_size || 40 }}
-                                    className={`object-contain bg-slate-50 dark:bg-slate-900 rounded p-1 border border-slate-200 dark:border-slate-700 ${config.logo_remove_background ? 'mix-blend-multiply dark:mix-blend-screen' : ''}`}
+                                    style={{ '--logo-w': `${config.logo_size || 40}px` } as React.CSSProperties}
+                                    className={`object-contain bg-slate-50 dark:bg-slate-900 rounded p-1 border border-slate-200 dark:border-slate-700 w-[length:var(--logo-w)] ${config.logo_remove_background ? 'mix-blend-multiply dark:mix-blend-screen' : ''}`}
                                 />
                                 <div className="flex-1 space-y-4">
                                     <div>
@@ -512,8 +512,8 @@ export const NavbarController: React.FC<NavbarControllerProps> = ({ t }) => {
                                 <img
                                     src={config.favicon_url}
                                     alt="Favicon Preview"
-                                    style={{ width: config.favicon_size || 32, height: config.favicon_size || 32 }}
-                                    className="object-contain bg-slate-50 dark:bg-slate-900 rounded p-1 border border-slate-200 dark:border-slate-700"
+                                    style={{ '--fav-s': `${config.favicon_size || 32}px` } as React.CSSProperties}
+                                    className="object-contain bg-slate-50 dark:bg-slate-900 rounded p-1 border border-slate-200 dark:border-slate-700 w-[length:var(--fav-s)] h-[length:var(--fav-s)]"
                                 />
                                 <div className="flex-1">
                                     <label className="block text-xs font-medium text-slate-500 mb-2">
