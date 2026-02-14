@@ -255,14 +255,47 @@ export const Navbar: React.FC<NavbarProps> = ({
         productsItem.children = categoryTree;
       }
 
-      // 3. Inject "Brands" category into "Brands" menu item
-      const brandsCategory = categoryTree.find(c => c.label === 'Brands' || c.label === 'brands');
-      if (brandsCategory && brandsCategory.children) {
-        const brandsMenuItem = items.find((i: MenuItem) => i.label === 'Brands' || i.labelAr === 'الماركات' || i.labelAr === 'Brands'); // labelAr might be Brands too if not translated
-        if (brandsMenuItem) {
-          brandsMenuItem.children = brandsCategory.children;
+      // 3. Generalized: Inject ALL top-level categories into matching menu items
+      // This will handle "Chemicals", "Equipments", "Brands", etc. automatically
+      categoryTree.forEach(cat => {
+        const catLabelEn = cat.label?.toLowerCase();
+        const catLabelAr = cat.labelAr?.toLowerCase(); // Assuming labelAr is populated in tree
+
+        const menuItem = items.find((i: MenuItem) => {
+          const itemLabel = i.label?.toLowerCase();
+          const itemLabelAr = i.labelAr?.toLowerCase();
+
+          return (itemLabel === catLabelEn) ||
+            (itemLabelAr && catLabelAr && itemLabelAr === catLabelAr) ||
+            (itemLabel === catLabelEn?.replace(/s$/, '')) || // Match singular/plural?
+            (catLabelEn === itemLabel?.replace(/s$/, ''));
+        });
+
+        if (menuItem) {
+          // Update href to point to the category if it's just a placeholder or generic
+          if (menuItem.href === '#' || menuItem.href === '' || menuItem.href === '/') {
+            menuItem.href = `/catalog?category=${encodeURIComponent(cat.label)}`;
+          }
+
+          // Helper to fix hrefs recursively
+          const fixHrefs = (nodes: MenuItem[]) => {
+            nodes.forEach(node => {
+              if (!node.href || node.href === '#') {
+                node.href = `/catalog?category=${encodeURIComponent(node.label)}`;
+              }
+              if (node.children) fixHrefs(node.children);
+            });
+          };
+
+          // Inject children if they exist
+          if (cat.children && cat.children.length > 0) {
+            // If menu item already has children (e.g. from config), we might want to merge or replace.
+            // For now, let's assume the DB category tree is the source of truth for dropdowns.
+            menuItem.children = cat.children;
+            fixHrefs(menuItem.children);
+          }
         }
-      }
+      });
     }
 
     return items;
