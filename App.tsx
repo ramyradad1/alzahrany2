@@ -15,7 +15,7 @@ import { Partners } from './components/Partners';
 import { CustomSection } from './components/CustomSection';
 import { ScrollToTop } from './components/ScrollToTop';
 import { ScrollToTopButton } from './components/ScrollToTopButton';
-import { SocialLinksWidget } from './components/SocialLinksWidget';
+
 import { ProductModal } from './components/ProductModal';
 import { AboutPage } from './components/AboutPage';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -301,7 +301,7 @@ const App = () => {
                 <Footer t={t} lang={lang} content={getSection('footer')?.content} />
                 <ScrollToTop />
                 <ScrollToTopButton />
-                <SocialLinksWidget />
+
               </>
             }>
               <Route path="/" element={
