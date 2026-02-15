@@ -47,6 +47,8 @@ export const AdminPartners: React.FC<AdminPartnersProps> = ({ partners, onAddPar
                       <button
                           onClick={() => onDeletePartner(partner.id)}
                           className="absolute top-2 right-2 p-1.5 text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                          title="Delete Partner"
+                          aria-label="Delete Partner"
                       >
                           <Trash2 className="w-4 h-4" />
                       </button>
@@ -62,15 +64,16 @@ export const AdminPartners: React.FC<AdminPartnersProps> = ({ partners, onAddPar
                   <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
                       <div className="flex justify-between items-center mb-6">
                           <h2 className="text-xl font-bold">{t.addPartner}</h2>
-                          <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full">
+                            <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full" aria-label="Close Modal">
                               <X className="w-5 h-5" />
                           </button>
                       </div>
 
                       <form onSubmit={handleSubmit} className="space-y-4">
                           <div>
-                              <label className="block text-sm font-medium mb-2">{t.partnerName}</label>
+                                <label className="block text-sm font-medium mb-2" htmlFor="partner_name">{t.partnerName}</label>
                               <input 
+                                    id="partner_name"
                                   type="text" 
                                   required
                                   value={name}
@@ -79,10 +82,11 @@ export const AdminPartners: React.FC<AdminPartnersProps> = ({ partners, onAddPar
                               />
                           </div>
                           <div>
-                              <label className="block text-sm font-medium mb-2">{t.partnerLogo} (URL)</label>
+                                <label className="block text-sm font-medium mb-2" htmlFor="partner_logo">{t.partnerLogo} (URL)</label>
                               <div className="relative">
                                   <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                                   <input 
+                                        id="partner_logo"
                                       type="url"
                                       required
                                       value={logo}

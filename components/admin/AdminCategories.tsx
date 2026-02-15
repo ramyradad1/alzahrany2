@@ -43,7 +43,7 @@ export const AdminCategories: React.FC<AdminCategoriesProps> = ({ lang }) => {
         const parentId = formData.parent_id ? parseInt(formData.parent_id) : undefined;
 
         if (editingId) {
-            await db.categories.update(editingId, {
+            await (db.categories as any).update(editingId, {
                 name_en: formData.name_en,
                 name_ar: formData.name_ar,
                 parent_id: parentId
@@ -89,7 +89,7 @@ export const AdminCategories: React.FC<AdminCategoriesProps> = ({ lang }) => {
             .map(cat => (
                 <div key={cat.id} className="ml-6 border-l-2 border-slate-100 dark:border-slate-700 pl-4 py-2">
                     <div className="flex items-center gap-2 group">
-                        <button onClick={() => toggleExpand(cat.id)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-400">
+                        <button onClick={() => toggleExpand(cat.id)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-400" aria-label={expanded[cat.id] ? "Collapse" : "Expand"}>
                             {expanded[cat.id] ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                         </button>
                   <FolderOpen className="w-5 h-5 text-cyan-500" />
@@ -98,13 +98,13 @@ export const AdminCategories: React.FC<AdminCategoriesProps> = ({ lang }) => {
                   </span>
 
                   <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                      <button onClick={() => handleOpenAdd(cat.id)} className="p-1 text-green-500 hover:bg-green-50 rounded">
+                            <button onClick={() => handleOpenAdd(cat.id)} className="p-1 text-green-500 hover:bg-green-50 rounded" title="Add Subcategory" aria-label="Add Subcategory">
                           <Plus className="w-4 h-4" />
                       </button>
-                      <button onClick={() => handleOpenEdit(cat)} className="p-1 text-blue-500 hover:bg-blue-50 rounded">
+                            <button onClick={() => handleOpenEdit(cat)} className="p-1 text-blue-500 hover:bg-blue-50 rounded" title="Edit Category" aria-label="Edit Category">
                           <Edit className="w-4 h-4" />
                       </button>
-                      <button onClick={() => handleDelete(cat.id)} className="p-1 text-red-500 hover:bg-red-50 rounded">
+                            <button onClick={() => handleDelete(cat.id)} className="p-1 text-red-500 hover:bg-red-50 rounded" title="Delete Category" aria-label="Delete Category">
                           <Trash2 className="w-4 h-4" />
                       </button>
                   </div>
@@ -141,8 +141,9 @@ export const AdminCategories: React.FC<AdminCategoriesProps> = ({ lang }) => {
                       </div>
                       <form onSubmit={handleSubmit} className="space-y-4">
                           <div>
-                              <label className="block text-sm font-medium mb-1">English Name</label>
+                                <label className="block text-sm font-medium mb-1" htmlFor="cat_name_en">English Name</label>
                               <input
+                                    id="cat_name_en"
                                   required
                                   value={formData.name_en}
                                   onChange={e => setFormData({ ...formData, name_en: e.target.value })}
@@ -150,8 +151,9 @@ export const AdminCategories: React.FC<AdminCategoriesProps> = ({ lang }) => {
                               />
                           </div>
                           <div>
-                              <label className="block text-sm font-medium mb-1">Arabic Name</label>
+                                <label className="block text-sm font-medium mb-1" htmlFor="cat_name_ar">Arabic Name</label>
                               <input
+                                    id="cat_name_ar"
                                   required
                                   value={formData.name_ar}
                                   onChange={e => setFormData({ ...formData, name_ar: e.target.value })}
@@ -159,8 +161,9 @@ export const AdminCategories: React.FC<AdminCategoriesProps> = ({ lang }) => {
                               />
                           </div>
                           <div>
-                              <label className="block text-sm font-medium mb-1">Parent ID (Optional)</label>
+                                <label className="block text-sm font-medium mb-1" htmlFor="cat_parent_id">Parent ID (Optional)</label>
                               <input
+                                    id="cat_parent_id"
                                   type="number"
                                   value={formData.parent_id}
                                   onChange={e => setFormData({ ...formData, parent_id: e.target.value })}

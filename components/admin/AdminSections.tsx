@@ -41,12 +41,8 @@ export const AdminSections: React.FC<AdminSectionsProps> = ({ sections, onUpdate
             </button>
             <AdminSectionEditor
                 section={editingSection}
-                onSave={async (updated) => {
-                    await db.sections.put(updated);
-                    await addToSyncQueue('sections', 'UPDATE', updated);
-                    setEditingSection(null);
-                }} 
-                onCancel={() => setEditingSection(null)}
+                onUpdate={() => setEditingSection(null)}
+                t={t}
             />
         </div>
     );
@@ -78,6 +74,8 @@ export const AdminSections: React.FC<AdminSectionsProps> = ({ sections, onUpdate
                   <button 
                       onClick={() => setEditingSection(section)}
                       className="p-2 text-cyan-600 hover:bg-cyan-50 rounded-lg transition-colors"
+                          title="Edit Section"
+                          aria-label="Edit Section"
                   >
                       <Edit className="w-5 h-5" />
                   </button>

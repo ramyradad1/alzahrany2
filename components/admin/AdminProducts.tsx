@@ -107,6 +107,7 @@ export const AdminProducts: React.FC<AdminProductsProps> = ({ products, onAdd, o
                   <input
                       type="text"
                       placeholder={t.search}
+                        aria-label="Search Products"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none transition-all"
@@ -146,6 +147,8 @@ export const AdminProducts: React.FC<AdminProductsProps> = ({ products, onAdd, o
                         <button
                             onClick={() => onDelete(product.id)}
                             className="px-4 py-2 flex items-center justify-center bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg transition-colors"
+                                  title="Delete Product"
+                                  aria-label="Delete Product"
                         >
                             <Trash2 className="w-4 h-4" />
                         </button>
@@ -173,6 +176,7 @@ export const AdminProducts: React.FC<AdminProductsProps> = ({ products, onAdd, o
                           <button
                               onClick={() => setIsModalOpen(false)}
                               className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors"
+                                aria-label="Close Modal"
                           >
                               <X className="w-6 h-6" />
                           </button>
@@ -181,8 +185,9 @@ export const AdminProducts: React.FC<AdminProductsProps> = ({ products, onAdd, o
                       <form onSubmit={handleSubmit} className="p-6 space-y-6">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                               <div>
-                                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t.name}</label>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2" htmlFor="prod_name">{t.name}</label>
                                   <input 
+                                        id="prod_name"
                                       type="text" 
                                       required 
                                       value={formData.name}
@@ -191,8 +196,9 @@ export const AdminProducts: React.FC<AdminProductsProps> = ({ products, onAdd, o
                                   />
                               </div>
                               <div>
-                                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t.category}</label>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2" htmlFor="prod_category">{t.category}</label>
                                   <input 
+                                        id="prod_category"
                                       type="text"
                                       required
                                       value={formData.category}
@@ -201,8 +207,9 @@ export const AdminProducts: React.FC<AdminProductsProps> = ({ products, onAdd, o
                                   />
                               </div>
                               <div className="col-span-full">
-                                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t.description}</label>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2" htmlFor="prod_desc">{t.description}</label>
                                   <textarea 
+                                        id="prod_desc"
                                       rows={3}
                                       required 
                                       value={formData.description}
@@ -211,11 +218,12 @@ export const AdminProducts: React.FC<AdminProductsProps> = ({ products, onAdd, o
                                   />
                               </div>
                               <div className="col-span-full">
-                                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t.productImage} (URL)</label>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2" htmlFor="prod_image">{t.productImage} (URL)</label>
                                   <div className="flex gap-4">
                                       <div className="relative flex-1">
                                           <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                                           <input
+                                                id="prod_image"
                                               type="url"
                                               required
                                               value={formData.image}
@@ -247,6 +255,7 @@ export const AdminProducts: React.FC<AdminProductsProps> = ({ products, onAdd, o
                                           <input
                                               type="text"
                                               placeholder={t.label}
+                                              aria-label={`Specification ${idx + 1} Label`}
                                               value={spec.label}
                               onChange={(e) => handleSpecChange(idx, 'label', e.target.value)}
                               className="flex-1 px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none"
@@ -254,6 +263,7 @@ export const AdminProducts: React.FC<AdminProductsProps> = ({ products, onAdd, o
                           <input
                               type="text"
                               placeholder={t.value}
+                                              aria-label={`Specification ${idx + 1} Value`}
                               value={spec.value}
                               onChange={(e) => handleSpecChange(idx, 'value', e.target.value)}
                               className="flex-1 px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none"
@@ -262,6 +272,8 @@ export const AdminProducts: React.FC<AdminProductsProps> = ({ products, onAdd, o
                               type="button" 
                               onClick={() => removeSpec(idx)}
                               className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                                              title="Remove Specification"
+                                              aria-label="Remove Specification"
                           >
                               <Trash2 className="w-4 h-4" />
                           </button>

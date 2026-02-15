@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Lock, LogOut, Package, Users, LayoutGrid, Home, Loader2, ChevronLeft, ChevronRight, Settings, Menu, X } from 'lucide-react';
+import { ErrorBoundary } from './ErrorBoundary';
 import { supabase } from '../supabase';
 import { Translations, Language } from '../types';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
@@ -189,7 +190,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ t, lang }) => {
             </div>
             {sidebarOpen && (
               <div className="overflow-hidden">
-                <h1 className="text-lg font-bold text-slate-900 dark:text-white whitespace-nowrap">Alzahrany</h1>
+                <h1 className="text-lg font-bold text-slate-900 dark:text-white whitespace-nowrap">Arkan Lab</h1>
                 <p className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">Admin Panel</p>
               </div>
             )}
@@ -320,8 +321,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ t, lang }) => {
           </div>
 
           {/* Content Area */}
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-            <Outlet />
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden min-h-[400px]">
+            <ErrorBoundary>
+              <React.Suspense fallback={<div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 animate-spin text-cyan-500" /></div>}>
+                <Outlet />
+              </React.Suspense>
+            </ErrorBoundary>
           </div>
         </div>
       </main>

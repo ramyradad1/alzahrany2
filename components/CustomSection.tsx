@@ -58,16 +58,12 @@ export const CustomSection: React.FC<CustomSectionProps> = ({ section }) => {
             {/* Custom Images Layer - Conditionally Rendered based on Layout Mode */}
             {sectionHeight === 'auto' && content.layoutMode === 'row' ? (
                 // --- ROW LAYOUT MODE ---
-                <div style={{
-                    display: 'flex',
-                    flexWrap: 'wrap', // Responsive wrapping
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    gap: content.gap || '24px', // Use configurable gap or default
-                    position: 'relative',
-                    zIndex: 5,
-                    width: '100%'
-                }}>
+                <div
+                    className="flex flex-wrap justify-center items-center relative z-[5] w-full"
+                    style={{
+                        gap: content.gap || '24px',
+                    }}
+                >
                     {content.images?.map((img) => (
                         <img
                             key={img.id}

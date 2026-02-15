@@ -840,6 +840,7 @@ const CustomSectionEditor: React.FC<{ section: Section, onUpdate: (s: Section) =
                                         <label className="block text-[10px] text-slate-500 mb-1">Z-Index</label>
                                         <input
                                             type="number"
+                                            aria-label="Image Z-Index"
                                             value={img.zIndex || 0}
                                             onChange={e => handleUpdateImage(img.id, { zIndex: parseInt(e.target.value) })}
                                             className="w-full px-2 py-1 text-xs border rounded"
@@ -850,6 +851,7 @@ const CustomSectionEditor: React.FC<{ section: Section, onUpdate: (s: Section) =
                                         <label className="block text-[10px] text-slate-500 mb-1">Opacity: {Math.round((img.opacity ?? 1) * 100)}%</label>
                                         <input
                                             type="range"
+                                            aria-label="Image Opacity"
                                             min="0"
                                             max="1"
                                             step="0.1"
@@ -863,6 +865,7 @@ const CustomSectionEditor: React.FC<{ section: Section, onUpdate: (s: Section) =
                                         <label className="block text-[10px] text-slate-500 mb-1">Rotation (deg)</label>
                                         <input
                                             type="number"
+                                            aria-label="Image Rotation"
                                             value={img.rotation || 0}
                                             onChange={e => handleUpdateImage(img.id, { rotation: parseInt(e.target.value) })}
                                             className="w-full px-2 py-1 text-xs border rounded"
